@@ -1,0 +1,533 @@
+import sound_direction;
+
+// these mark a image location on the grid.
+int[..] grid_indices = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+Page pre_page
+{
+    PreItem     item;           // the currently presented item.
+    int         nth_trial;      // the number of the current trial.
+    bool        is_last;        // whether the current stimulus is the last.
+
+    // reference to the pictures in ./stimuli.zm
+    string[] pictures;
+    string   image_dir;
+
+    init()
+    {
+        fill_pattern_color = rgb:BAD6EB;
+        image_dir = stimuli_dir() + "images/";
+    }
+
+  
+
+    Timer grid_timer
+    {
+        on_event:expire()
+        {
+            layout.show_new_pictures();
+            start(expire_time + INTER_GRID_DURATION);
+        }
+    }
+
+    // Key press doesn't work properly since the baby window is a output
+    // only window.
+    on_event:key_press()
+    {
+        if      (input_key == KEY_Shift_L)
+            response.process_hit(event_time, EVENT_STOP_LOOKING);
+        else if (input_key == KEY_Shift_R)
+            response.process_hit(event_time, EVENT_START_LOOKING);
+        else
+            handle_special_key(this, input_key, input_modifiers);
+    }
+
+    on_event:message()
+    {
+        response.process_hit(event_time, message_arg);
+    }
+
+    Response response
+    {
+        bool    is_looking;
+        time    lookstart;
+        time    nolookstart;
+        dur     cumlt;
+        dur     cumnlt;
+        int     nlookaways;
+        int     nlooks;
+
+        on_event:start()
+        {
+            clear();
+            lookstart = event_time;
+            // assume the child is looking.
+            is_looking = true;
+        }
+
+        void clear()
+        {
+            is_looking  = true;
+            lookstart   = time(0);
+            nolookstart = time(0);
+            cumlt       = 0ms;
+            cumnlt      = 0ms;
+            nlookaways  = 0;
+            nlooks      = 1; // The infant is always looking at the start
+                             // of the trial.
+        }
+
+        void process_hit(time t, int event)
+        {
+            HitType validity = hit(t);
+            
+            if (validity == HIT_VALID) {
+                if (event == EVENT_STOP_LOOKING) { // start abort timer
+                    if (!is_looking)
+                        return; // ignore, because we aren't looking.
+                    is_looking = false;
+                    nolookstart = t;
+                    cumlt += (t - lookstart);
+
+                    control.stop_clock(t);
+                    nlookaways++;
+                }
+                else if (event == EVENT_START_LOOKING) {
+                    if(is_looking)
+                        return; // ignore, because we are already looking.
+                    is_looking = true;
+                    lookstart = t;
+                    cumnlt += (t - nolookstart);
+
+                    control.start_clock(t);
+                    nlooks++;
+                }
+                else if (event == EVENT_STOP) {
+                    if (is_looking)
+                        cumlt += (t - lookstart);
+                    else
+                        cumnlt+= (t - nolookstart);
+                }
+            }
+        }
+    }
+
+
+    // Key press doesn't work properly since the baby window is a output
+    // only window.
+    // on_event:key_press()
+    // {
+    //     if      (input_key == KEY_Shift_L)
+    //         response.process_hit(event_time, EVENT_STOP_LOOKING);
+    //     else if (input_key == KEY_Shift_R)
+    //         response.process_hit(event_time, EVENT_START_LOOKING);
+    //     else
+    //         handle_special_key(this, input_key, input_modifiers);
+    // }
+
+    // on_event:message()
+    // {
+    //     response.process_hit(event_time, message_arg);
+    // }
+
+
+
+    VerticalLayout layout
+    {
+        on_event:init()
+        {
+            spacing     = 50;
+            height      = 0;
+            is_visible  = false;
+        }
+
+        on_event:start()
+        {
+            //println("Releasing clock");
+            //control.release_clock(event_time);
+        }
+
+        CanvasGadget canvas
+        {
+            real max_radius;
+
+            on_event:init()
+            {
+                size     = 900,900;//layout.width,layout.height;
+                offset_x = width /2;
+                offset_y = height/2;
+
+                // Hide the canvas frame
+                //fill_pattern_color = TEST_PAGE_COLOR;
+
+                // This puts the stimuli in a frame
+                //fill_pattern_color = TEST_PAGE_STIMULUS_COLOR;
+                
+                // Framecolor is the same color as background of images.
+                fill_pattern_color = rgbi:186/214/235;
+
+                is_visible = true;
+            }
+
+            ImageShape lefttop
+            {
+                on_event:init()
+                {
+                    image = grid_images[0];
+                    width = 300;
+                    height= 200;
+                    offset_x = -canvas.width/2;
+                    offset_y = -canvas.height/2;
+                }
+            }
+
+            ImageShape midtop
+            {
+                on_event:init()
+                {
+                    image = grid_images[1];
+                    width = 300;
+                    height= 200;
+                    offset_x = -width/2;
+                    offset_y = -canvas.height/2;
+                }
+            }
+
+            ImageShape righttop
+            {
+                on_event:init()
+                {
+                    image = grid_images[2];
+                    width = 300;
+                    height= 200;
+                    offset_x = canvas.width/2 - width;
+                    offset_y = -canvas.height/2;
+                }
+            }
+            
+            ImageShape leftcenter
+            {
+                on_event:init()
+                {
+                    image = grid_images[3];
+                    width = 300;
+                    height= 200;
+                    offset_x = -canvas.width/2;
+                    offset_y = -height/2;
+                }
+            }
+
+            ImageShape midcenter
+            {
+                on_event:init()
+                {
+                    image = grid_images[4];
+                    width = 300;
+                    height= 200;
+                    offset_x = -width/2;
+                    offset_y = -height/2;
+                }
+            }
+
+            ImageShape rightcenter
+            {
+                on_event:init()
+                {
+                    image = grid_images[5];
+                    width = 300;
+                    height= 200;
+                    offset_x = canvas.width/2 - width;
+                    offset_y = -height/2;
+                }
+            }
+            
+            ImageShape leftbottom
+            {
+                on_event:init()
+                {
+                    image = grid_images[6];
+                    width = 300;
+                    height= 200;
+                    offset_x = -canvas.width/2;
+                    offset_y = canvas.height/2 - height;
+                }
+            }
+
+            ImageShape midbottom
+            {
+                on_event:init()
+                {
+                    image = grid_images[7];
+                    width = 300;
+                    height= 200;
+                    offset_x = -width/2;
+                    offset_y = canvas.height/2 - height;
+                }
+            }
+
+            ImageShape rightbottom
+            {
+                on_event:init()
+                {
+                    image = grid_images[8];
+                    width = 300;
+                    height= 200;
+                    offset_x = canvas.width/2 - width;
+                    offset_y = canvas.height/2 - height;
+                }
+            }
+            
+            void show_new_pictures()
+            {
+                int i = 0;
+                grid_images.shuffle(0, -1);
+                grid_indices.shuffle(0, -1);
+                int nth_file = 0;
+
+                lefttop.is_visible      = false;
+                leftcenter.is_visible   = false;
+                leftbottom.is_visible   = false;
+                midtop.is_visible       = false;
+                midcenter.is_visible    = false;
+                midbottom.is_visible    = false;
+                righttop.is_visible     = false;
+                rightbottom.is_visible  = false;
+                rightcenter.is_visible  = false;
+                
+                while (i < N_GRID_IMS) {
+                    int nth = grid_indices[i];
+                    if (nth == 1) {
+                        lefttop.image = grid_images[i];
+                        lefttop.is_visible = true;
+                    }
+                    else if (nth == 2) {
+                        midtop.image = grid_images[i];
+                        midtop.is_visible = true;
+                    }
+                    else if (nth == 3) {
+                        righttop.image = grid_images[i];
+                        righttop.is_visible = true;
+                    }
+                    else if (nth == 4) {
+                        leftcenter.image = grid_images[i];
+                        leftcenter.is_visible = true;
+                    }
+                    else if (nth == 5) {
+                        midcenter.image = grid_images[i];
+                        midcenter.is_visible = true;
+                    }
+                    else if (nth == 6) {
+                        rightcenter.image = grid_images[i];
+                        rightcenter.is_visible = true;
+                    }
+                    else if (nth == 7) {
+                        leftbottom.image = grid_images[i];
+                        leftbottom.is_visible = true;
+                    }
+                    else if (nth == 8) {
+                        midbottom.image = grid_images[i];
+                        midbottom.is_visible = true;
+                    }
+                    else { // if (nth == 9)
+                        lefttop.image = grid_images[i];
+                        lefttop.is_visible = true;
+                    }
+
+                    i++;
+                }
+            }
+        }
+
+        void show_new_pictures()
+        {
+            canvas.show_new_pictures();
+        }
+
+        time start_grid(time t)
+        {
+            show_new_pictures();
+            start(t);
+            grid_timer.start(t + INTER_GRID_DURATION);
+            return expected_start_time;
+        }
+
+        void stop_grid()
+        {
+            reset();
+            grid_timer.abort();
+        }
+
+        void reset()
+        {
+            full_abort();
+        }
+    }
+
+    SoundChain audio
+    {
+        
+        BeepGenerator beep 
+        {
+            on_event: init()
+            {
+                set_scaling(BEEP_VOLUME_RATIO);
+            }
+        }
+
+        //SoundFile clip{}
+        SoundPlayback playback{}
+
+        SoundDirection dir;
+
+        on_event:start()
+        {
+            int lights = 0;
+            if (dir & SND_DIRECTION_LEFT)
+                lights |= LEFT_SIDE;
+            if (dir & SND_DIRECTION_FRONT)
+                lights |= FRONT_SIDE;
+            if (dir & SND_DIRECTION_RIGHT)
+                lights |= RIGHT_SIDE;
+
+            control.hide_speaker_icon(FRONT_SIDE | LEFT_SIDE | RIGHT_SIDE);
+            control.show_speaker_icon(lights);
+
+            //perhaps save audio start even to detailed log.
+        }
+
+        on_event:finish()
+        {
+            control.hide_speaker_icon(FRONT_SIDE | LEFT_SIDE | RIGHT_SIDE);
+
+            StimOutput output;
+
+            time begin      = zero_time();
+            output.trial    = nth_trial;
+            output.tstart   = int(start_time - begin);
+            output.tend     = int(finish_time - begin);
+            output.stimulus = clip.file;//NULL;    //'beep'; //clip.file;
+
+            pre_stim_output_append(output);
+            if (is_last) {
+                response.process_hit(event_time, EVENT_STOP);
+                response.abort();
+            }
+
+            // end trial
+            done(CONTINUE);
+        }
+
+        time play(time t, string fn, SoundDirection direction)
+        {
+            abort();
+            dir = direction;
+
+            playback.set_scaling(0.0); // all channels off.
+
+            // Turn scaling back on for the proper channels
+            // keep in mind that the front right isn't wired (2017)
+            // and the front left represents the front.
+            if (dir & SND_DIRECTION_FRONT) {
+                playback.set_scaling(CHANNEL_FRONT_LEFT , 1.0);
+                playback.set_scaling(CHANNEL_FRONT_RIGHT, 1.0);
+            }
+            else {
+                playback.set_scaling(CHANNEL_FRONT_LEFT , 0.0);
+                playback.set_scaling(CHANNEL_FRONT_RIGHT, 0.0);
+            }
+
+            if (dir & SND_DIRECTION_LEFT)
+                playback.set_scaling(CHANNEL_REAR_LEFT, 1.0);
+            else 
+                playback.set_scaling(CHANNEL_REAR_LEFT, 0.0);
+            
+            if (dir & SND_DIRECTION_RIGHT)
+                playback.set_scaling(CHANNEL_REAR_RIGHT, 1.0);
+            else 
+                playback.set_scaling(CHANNEL_REAR_RIGHT, 0.0);
+
+            playback.device = sound_output_device;
+            //beep.stim              = "beep";
+            beep.frequency         = BEEP_FREQUENCY;
+            beep.content_duration  = BEEP_DURATION;
+            beep.fade_in_duration  = 5ms;
+            beep.fade_out_duration = 5ms;
+
+            //clip.file = stimuli_dir() + "sounds/ae-E continua/" + fn;
+            clip.file              = "beep";
+
+            start (t);
+            return expected_start_time;
+        }
+    }
+
+    void done(int message)
+    {
+        layout.abort();
+        audio.abort();
+        signal_target(message);
+        //layout.reset();
+        //control.erase_clock();
+        control.hide_speaker_icon(FRONT_SIDE | LEFT_SIDE | RIGHT_SIDE);
+    }
+
+//    // Currently useless.
+//    void setup(TestItem[] items)
+//    {
+//        // Load first audio file here.
+//        item_list   = items;
+//        item        = item_list[random(0, item_list.size)];
+//
+//        // preload the file
+//        audio.clip.file = stimuli_dir() + "audio/" + item.snd_fn + ".wav";
+//    }
+
+    time start_grid(time t)
+    {
+        control.reset_clock();
+        control.begin_clock(true);
+        
+        time start = test_window1.show_test_page(this, t);
+        
+        start = layout.start_grid(start);
+        
+        return start;
+    }
+
+    void stop_grid()
+    {
+        //control.stop_clock();
+        control.erase_clock();
+        layout.stop_grid();
+    }
+
+    time action(Object      caller,
+                time        start,
+                PreItem    item,
+                bool        last,
+                bool        first
+                )
+    {
+        time tref = start;
+        //time tref      = test_window1.show_test_page(this, start);
+        // Doesn't work because of std_baby_windows1.zm
+        // test_window1.activate(); // to capture keyboard events.
+        this.target    = caller;
+
+        time audio_onset = audio.play(tref, item.snd_fn, SND_DIRECTION_FRONT);
+        
+        if(first)
+        {
+            control.start_clock(audio_onset);
+            control.set_status("pre attention test");
+            response.start(audio_onset);
+        }
+        control.target = this;
+
+        this.is_last = last;
+
+        return tref;
+    }
+}
+
+

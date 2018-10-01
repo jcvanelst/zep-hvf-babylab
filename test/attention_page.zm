@@ -1,0 +1,165 @@
+
+import defs;
+
+Page attention_page
+{
+
+    // shows a movie by presenting multiple frames after each other.
+    // it uses a "front" and "backbuffer" not in a hardware accelerated
+    // sense bu in the sense that while the front buffer is being presented
+    // Zep has got some time to load and render the other.
+    on_event:key_press()
+    {
+        if      (input_key == KEY_Shift_R)
+            response.process_hit(event_time, EVENT_START_LOOKING);
+        else if (input_key == ' ')
+            response.process_hit(event_time, EVENT_START_ATTENTION);
+        else
+            handle_special_key(this, input_key, input_modifiers);
+    }
+
+    on_event:message()
+    {
+        response.process_hit(event_time, message_arg);
+    }
+
+    on_event:show_start()
+    {
+        control.start_attention_grabber_cross();
+    }
+
+    VerticalLayout layout {
+
+        on_event:init()
+        {
+            spacing     = 50;
+            height      = 0;        // is as large as possible
+            is_visible  = true;
+        }
+
+        CanvasGadget canvas
+        {
+            on_event:init ()
+            {
+                fill_pattern_color = TEST_PAGE_COLOR;
+                size     = 800, 800;
+                offset_x = width/2;
+                offset_y = height/2;
+            }
+
+            ImageShape frontbuffer
+            {
+                bool is_playing;
+
+                void load(string fn)
+                {
+                    image = fn;
+                    x = -image_width / 2;
+                    y = -image_height/ 2;
+                }
+
+                on_event:start()
+                {
+                    is_playing = true;
+                    backbuffer.abort();
+                    backbuffer.load(next_movie_stim());
+                    backbuffer.start(event_time + INTER_MOVIE_STIM_DUR,
+                                     INTER_MOVIE_STIM_DUR
+                                     );
+                }
+            }
+            
+            ImageShape backbuffer
+            {
+                bool is_playing = false;
+
+                void load(string fn)
+                {
+                    image = fn;
+                    x = -image_width/2;
+                    y = -image_height/2;
+                }
+
+                on_event:start()
+                {
+                    is_playing = true;
+                    frontbuffer.abort();
+                    frontbuffer.load(next_movie_stim());
+                    frontbuffer.start(event_time + INTER_MOVIE_STIM_DUR,
+                                      INTER_MOVIE_STIM_DUR);
+                }
+            }
+
+            bool is_playing()
+            {
+                return frontbuffer.is_playing || backbuffer.is_playing;
+            }
+
+            void clear()
+            {
+                frontbuffer.is_playing  = false;
+                backbuffer.is_playing   = false;
+                frontbuffer.is_visible  = false;
+                backbuffer.is_visible   = false;
+            }
+        }
+
+        void start_playing(time t)
+        {
+            canvas.frontbuffer.start(t);
+        }
+
+        void stop_playing()
+        {
+            full_abort();
+            canvas.clear();
+        }
+    }
+
+    Response response
+    {
+        void process_hit(time t, int event)
+        {
+            HitType validity = hit(t);
+            if (validity == HIT_VALID)
+            {
+                if(event == EVENT_START_ATTENTION)
+                {
+                    if (!layout.canvas.is_playing()) {
+                        layout.start_playing(t);
+                        control.animate_attention_grabber_cross(t);
+                    }
+                }
+                else if (event == EVENT_START_LOOKING) {
+                    if (layout.canvas.is_playing())
+                        done(CONTINUE);
+                }
+            }
+        }
+
+
+    }
+
+    void done(int msg)
+    {
+        signal_target(msg);
+        layout.stop_playing();
+        response.abort();
+        control.clear_attention_grabber_cross();
+    }
+
+    void setup()
+    {
+        reset_movie_stims();
+        layout.canvas.frontbuffer.load(next_movie_stim());
+    }
+
+    void action(Part caller, time tref, dur inter_stimulus)
+    {
+        target = caller;
+        control.target = this;
+        tref = test_window1.show_test_page(this, tref + inter_stimulus);
+        response.start (tref);
+    }
+}
+

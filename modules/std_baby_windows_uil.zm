@@ -1,0 +1,1039 @@
+/******************************************************************************\
+FILE:           std_baby_windows1.zm
+AUTHOR:         Theo Veenker <theo.veenker@beexy.nl>
+ADAPTED BY:     -
+
+DESCRIPTION:
+
+Provides one test window and a control window with some message/dialog boxes.
+The test window is considered output-only. This module is typically used for
+infant experiments.
+
+Requires a dual head display.
+
+
+HISTORY:
+2011-08-29 TV   Created as part of the standard Zep modules.
+
+\******************************************************************************/
+
+plugin zep_display;
+
+import std_baby_control;
+//import globaldefs;
+import defs;    // to import globaldefs
+import colors;
+import fonts;
+import grouping;
+import session;
+import participant;
+import researcher;
+import stimuli;
+import output;
+import random;
+import page_settings;
+
+
+// Page transition delay for next page transition.
+dur page_transition_delay;
+
+// Extra delay between page show and trial start.
+dur first_trial_delay;
+
+
+init()
+{
+    // The display must be opened before any window show() methods are
+    // called. Otherwise zep's -vsync option won't be honored.
+    if (!display_device.is_open)
+    {
+        if (display_device.open() != 0)
+            terminate;
+    }
+}
+
+
+NormalWindow test_window1
+{
+    init()
+    {
+        geometry = ALIGN_BEGIN, ALIGN_BEGIN, 30;
+        background = WINDOW_COLOR;
+        title = "1";
+    }
+
+
+    on_event:close()
+    {
+        // Let ctrl_window handle abort request message.
+        signal(ctrl_window, SYS_QUIT);
+    }
+
+
+    on_event:key_press()
+    {
+        handle_special_key(this, input_key, input_modifiers);
+    }
+
+
+    on_event:show()
+    {
+        // Make sure the control window stays active if the test window
+        // becomes mapped.
+        ctrl_window.activate();
+    }
+
+
+    on_event:message()
+    {
+        // Forward message to ctrl_window (so it can handle stop/abort).
+        signal(ctrl_window, message_arg1, message_arg2);
+    }
+
+
+    bool is_output_only()
+    {
+        return true;
+    }
+
+
+    time show_test_page(Page pg, time tstart, bool act=true)
+    {
+        time tnow = now();
+        dur transdel = page_transition_delay;
+        dur transdur = PAGE_TRANSITION_DURATION;
+
+        tstart += first_trial_delay;
+
+        // Consider tstart the time the next trial should start, then we
+        // have tstart - tnow room to perform the page transition. If there
+        // is too little room, then adjust the transition delay and/or the
+        // transition duration.
+        dur d = tstart - tnow - 20ms;   // Take 20ms margin.
+        if (transdur > d)
+        {
+            transdur = d;
+            transdel = 0s;
+        }
+        else if (transdel + transdur > d)
+        {
+            transdel = d - transdur;
+        }
+
+        // Activate the window so it gets the keyboard focus.
+//      if (act && !is_output_only()) activate();       always false
+
+        // Show page if not yet shown.
+        int alreadyshown = show_page(pg, tnow + transdel, transdur);
+
+        // If the page is not yet shown determine the time it will become
+        // fully visible.
+        if (!alreadyshown)
+        {
+            time t = pg.expected_transition_finish_time;
+            if (t > tstart) tstart = t;
+        }
+
+        // Clear page transition delay and first trial delay.
+        page_transition_delay = 0s;
+        first_trial_delay = 0s;
+
+        return tstart;
+    }
+}
+
+Page black_page_left
+{
+    on_event:init()
+    {
+        fill_pattern_color = color:black;
+    }
+}
+
+NormalWindow test_window_left
+{
+    init()
+    {
+        geometry = ALIGN_BEGIN, ALIGN_BEGIN, 30;
+        background = color:black;
+        title = "left";
+    }
+
+
+    on_event:close()
+    {
+        // Let ctrl_window handle abort request message.
+        signal(ctrl_window, SYS_QUIT);
+    }
+
+
+    on_event:key_press()
+    {
+        handle_special_key(this, input_key, input_modifiers);
+    }
+
+
+    on_event:show()
+    {
+        // Make sure the control window stays active if the test window
+        // becomes mapped.
+        ctrl_window.activate();
+    }
+
+
+    on_event:message()
+    {
+        // Forward message to ctrl_window (so it can handle stop/abort).
+        signal(ctrl_window, message_arg1, message_arg2);
+    }
+
+
+    bool is_output_only()
+    {
+        return true;
+    }
+
+
+    time show_test_page(Page pg, time tstart, bool act=true)
+    {
+        time tnow = now();
+        dur transdel = page_transition_delay;
+        dur transdur = PAGE_TRANSITION_DURATION;
+
+        tstart += first_trial_delay;
+
+        // Consider tstart the time the next trial should start, then we
+        // have tstart - tnow room to perform the page transition. If there
+        // is too little room, then adjust the transition delay and/or the
+        // transition duration.
+        dur d = tstart - tnow - 20ms;   // Take 20ms margin.
+        if (transdur > d)
+        {
+            transdur = d;
+            transdel = 0s;
+        }
+        else if (transdel + transdur > d)
+        {
+            transdel = d - transdur;
+        }
+
+        // Activate the window so it gets the keyboard focus.
+//      if (act && !is_output_only()) activate();       always false
+
+        // Show page if not yet shown.
+        int alreadyshown = show_page(pg, tnow + transdel, transdur);
+
+        // If the page is not yet shown determine the the time it will become
+        // fully visible.
+        if (!alreadyshown)
+        {
+            time t = pg.expected_transition_finish_time;
+            if (t > tstart) tstart = t;
+        }
+
+        // Clear page transition delay and first trial delay.
+        page_transition_delay = 0s;
+        first_trial_delay = 0s;
+
+        return tstart;
+    }
+}
+
+Page black_page_right
+{
+    on_event:init()
+    {
+        fill_pattern_color = color:black;
+    }
+}
+
+NormalWindow test_window_right
+{
+    init()
+    {
+        geometry = ALIGN_BEGIN, ALIGN_BEGIN, 30;
+        background = color:black;
+        title = "right";
+    }
+
+
+    on_event:close()
+    {
+        // Let ctrl_window handle abort request message.
+        signal(ctrl_window, SYS_QUIT);
+    }
+
+
+    on_event:key_press()
+    {
+        handle_special_key(this, input_key, input_modifiers);
+    }
+
+
+    on_event:show()
+    {
+        // Make sure the control window stays active if the test window
+        // becomes mapped.
+        ctrl_window.activate();
+    }
+
+
+    on_event:message()
+    {
+        // Forward message to ctrl_window (so it can handle stop/abort).
+        signal(ctrl_window, message_arg1, message_arg2);
+    }
+
+
+    bool is_output_only()
+    {
+        return true;
+    }
+
+
+    time show_test_page(Page pg, time tstart, bool act=true)
+    {
+        time tnow = now();
+        dur transdel = page_transition_delay;
+        dur transdur = PAGE_TRANSITION_DURATION;
+
+        tstart += first_trial_delay;
+
+        // Consider tstart the time the next trial should start, then we
+        // have tstart - tnow room to perform the page transition. If there
+        // is too little room, then adjust the transition delay and/or the
+        // transition duration.
+        dur d = tstart - tnow - 20ms;   // Take 20ms margin.
+        if (transdur > d)
+        {
+            transdur = d;
+            transdel = 0s;
+        }
+        else if (transdel + transdur > d)
+        {
+            transdel = d - transdur;
+        }
+
+        // Activate the window so it gets the keyboard focus.
+//      if (act && !is_output_only()) activate();       always false
+
+        // Show page if not yet shown.
+        int alreadyshown = show_page(pg, tnow + transdel, transdur);
+
+        // If the page is not yet shown determine the time it will become
+        // fully visible.
+        if (!alreadyshown)
+        {
+            time t = pg.expected_transition_finish_time;
+            if (t > tstart) tstart = t;
+        }
+
+        // Clear page transition delay and first trial delay.
+        page_transition_delay = 0s;
+        first_trial_delay = 0s;
+
+        return tstart;
+    }
+}
+
+NormalWindow ctrl_window
+{
+    init()
+    {
+        position = ALIGN_CENTER, ALIGN_CENTER;
+        background = CONTROL_COLOR;
+        title = "Experiment Control";
+    }
+
+
+    on_event:close()
+    {
+        signal(this, SYS_QUIT);
+    }
+
+
+    on_event:message()
+    {
+        if (message_arg == SYS_STOP)
+        {
+            if (message_arg2 == 0)
+            {
+                if (control.state == CONTROL_RUNNING)
+                {
+                    activate();
+                    abort_dialog.action(false);
+                }
+            }
+            else
+            {
+                control.stop_experiment();
+            }
+        }
+        else if (message_arg == SYS_QUIT)
+        {
+            if (message_arg2 == 0)
+            {
+                if (control.state == CONTROL_RUNNING)
+                {
+                    activate();
+                    abort_dialog.action(true);
+                }
+                else if (control.quit_experiment() == OK)
+                    if (control.state <= CONTROL_READY) terminate;
+            }
+            else
+            {
+                if (control.quit_experiment() == OK)
+                    if (control.state <= CONTROL_READY) terminate;
+            }
+        }
+    }
+
+
+    DialogWindow msgbox
+    {
+    }
+
+
+    DialogWindow browserbox
+    {
+    }
+
+
+    DialogWindow entrybox
+    {
+    }
+
+
+    Page abort_dialog
+    {
+        bool    abortmode;
+
+
+        on_event:close()
+        {
+            done(SYS_CANCEL);
+        }
+
+
+        on_event:key_press()
+        {
+            if (input_key == KEY_Escape)
+                done(SYS_CANCEL);
+            else if (input_key == KEY_Return)
+                done(abortmode ? SYS_QUIT : SYS_STOP, 1);
+        }
+
+
+        VerticalLayout layout
+        {
+            init()
+            {
+                left_margin = 10;
+                right_margin = 10;
+                top_margin = 10;
+                bottom_margin = 10;
+                spacing = 20;
+                options =
+                    LAYOUT_STRETCH_ITEMS |
+                    LAYOUT_ATTACH_LEFT |
+                    LAYOUT_ATTACH_RIGHT;
+                fill_pattern_color = CONTROL_COLOR;
+            }
+
+
+            LabelGadget message
+            {
+                init()
+                {
+                    font_family = CONTROL_MESSAGE_FONT_FAMILY;
+                    font_size = CONTROL_MESSAGE_FONT_SIZE;
+                    fill_pattern_color = CONTROL_MESSAGE_COLOR;
+                    text_color = CONTROL_MESSAGE_TEXT_COLOR;
+                    is_wrapping = true;
+                    size = 400, 100;
+                    margin = 10;
+                    border = 2;
+                    border_style = BORDER_RIDGE;
+                }
+            }
+
+
+            HorizontalLayout buttons
+            {
+                init()
+                {
+                    spacing = 20;
+                    options = LAYOUT_EQUAL_WIDTH;
+                }
+
+
+                ButtonGadget no
+                {
+                    init()
+                    {
+                        text = "No";
+                        font_family = CONTROL_BUTTON_FONT_FAMILY;
+                        font_size = CONTROL_BUTTON_FONT_SIZE;
+                        fill_pattern_color = CONTROL_BUTTON_COLOR;
+                        text_color = CONTROL_BUTTON_TEXT_COLOR;
+                        size = 120, 40;
+                        margin = 5;
+                        border = 4;
+                        is_focusable = true;
+                    }
+
+
+                    on_event:activate()
+                    {
+                        done(SYS_CANCEL);
+                    }
+                }
+
+
+                ButtonGadget yes
+                {
+                    init()
+                    {
+                        text = "Yes";
+                        font_family = CONTROL_BUTTON_FONT_FAMILY;
+                        font_size = CONTROL_BUTTON_FONT_SIZE;
+                        fill_pattern_color = CONTROL_BUTTON_COLOR;
+                        text_color = CONTROL_BUTTON_TEXT_COLOR;
+                        size = 120, 40;
+                        margin = 5;
+                        border = 4;
+                        is_focusable = true;
+                    }
+
+
+                    on_event:activate()
+                    {
+                        done(abortmode ? SYS_QUIT : SYS_STOP, 1);
+                    }
+                }
+            }
+        }
+
+
+        void done(int msgid, int msgid2=0)
+        {
+            msgbox.hide();
+            msgbox.drop_page();
+            signal_target(msgid, msgid2);
+            target = null;
+        }
+
+
+        //======================================================================
+
+
+        void action(bool abort)
+        {
+            abortmode = abort;
+            if (abortmode)
+                layout.message.text = "Abort experiment?";
+            else
+                layout.message.text = "Go to end of experiment?";
+
+            target = ctrl_window;
+            msgbox.title = "Quit";
+            msgbox.show_page(this);
+            int prefw = preferred_width;
+            int prefh = preferred_height;
+            msgbox.geometry =
+                ctrl_window.x + (ctrl_window.width - prefw) / 2,
+                ctrl_window.y + (ctrl_window.height - prefh) / 2,
+                prefw, prefh;
+            msgbox.head = ctrl_window.head;
+            msgbox.show();
+            msgbox.activate();
+        }
+    }
+
+
+    Page help_dialog
+    {
+        on_event:close()
+        {
+            done();
+        }
+
+
+        on_event:key_press()
+        {
+            if (input_key == KEY_Escape || input_key == KEY_Return)
+                done();
+        }
+
+
+        VerticalLayout layout
+        {
+            init()
+            {
+                left_margin = 10;
+                right_margin = 10;
+                top_margin = 10;
+                bottom_margin = 10;
+                spacing = 20;
+                options =
+                    LAYOUT_STRETCH_ITEMS |
+                    LAYOUT_ATTACH_LEFT |
+                    LAYOUT_ATTACH_RIGHT;
+                fill_pattern_color = CONTROL_COLOR;
+            }
+
+
+            LabelGadget message
+            {
+                init()
+                {
+                    text =
+                        "Function key assignment:\n"
+                        "  F1\t\t\tactivate control window\n"
+                        "  F2\t\t\t<s>activate test window</s>\n"
+                        "  F3\t\t\tmove all windows to first head\n"
+                        "  F4\t\t\tmove all windows to their designated locations\n"
+                        "\n"
+//                      "  F5\t\t\t<s>show copy of test window in control window (toggle)</s>\n"
+//                      "  F7\t\t\t<s>show eye-tracker gaze in control window (toggle)</s>\n"
+//                      "  F8\t\t\t<s>show eye-tracker fixations control window (toggle)</s>\n"
+//                      "  Ctrl+F7\t\t<s>show eye-tracker gaze in test window (toggle)</s>\n"
+//                      "  Ctrl+F8\t\t<s>show eye-tracker fixations test window (toggle)</s>\n"
+//                      "\n"
+//                      "  F9\t\t\t\n"
+                        "  F10\t\tmaximize active window (toggle)\n"
+                        "  F11\t\tfullscreen active window (toggle)\n"
+                        "\n"
+                        "  F12\t\tcreate dump of active window in PDF format\n"
+                        "  Ctrl+F12\tcreate dump of active window in PNG format\n"
+                        "\n"
+                        "  Alt+F4\t\tabort experiment (asks for confirmation)\n"
+                        "  Ctrl+F4\t\tjump to thank-you phase (if implemented)\n"
+                        "  Ctrl+Break\tforcefully abort experiment",
+                        true;
+                    font_family = CONTROL_INFO_FONT_FAMILY;
+                    font_size = CONTROL_INFO_FONT_SIZE;
+                    fill_pattern_color = CONTROL_MESSAGE_COLOR;
+                    text_color = CONTROL_MESSAGE_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                    margin = 10;
+                    border = 2;
+                    border_style = BORDER_RIDGE;
+                }
+            }
+
+
+            HorizontalLayout buttons
+            {
+                init()
+                {
+                    spacing = 20;
+                    options = LAYOUT_EQUAL_WIDTH;
+                }
+
+
+                ButtonGadget ok
+                {
+                    init()
+                    {
+                        text = "OK";
+                        font_family = CONTROL_BUTTON_FONT_FAMILY;
+                        font_size = CONTROL_BUTTON_FONT_SIZE;
+                        fill_pattern_color = CONTROL_BUTTON_COLOR;
+                        text_color = CONTROL_BUTTON_TEXT_COLOR;
+                        size = 120, 40;
+                        margin = 5;
+                        border = 4;
+                        is_focusable = true;
+                    }
+
+
+                    on_event:activate()
+                    {
+                        done();
+                    }
+                }
+            }
+        }
+
+
+        void done()
+        {
+            msgbox.hide();
+            msgbox.drop_page();
+        }
+
+
+        //======================================================================
+
+
+        void action()
+        {
+            msgbox.title = "Help";
+            msgbox.show_page(this);
+            int prefw = preferred_width;
+            int prefh = preferred_height;
+            msgbox.geometry =
+                ctrl_window.x + (ctrl_window.width - prefw) / 2,
+                ctrl_window.y + (ctrl_window.height - prefh) / 2,
+                prefw, prefh;
+            msgbox.head = ctrl_window.head;
+            msgbox.show();
+            msgbox.activate();
+        }
+    }
+
+
+    void show_help()
+    {
+        activate();
+        help_dialog.action();
+    }
+
+
+    Page error_dialog
+    {
+        on_event:close()
+        {
+            done();
+        }
+
+
+        on_event:key_press()
+        {
+            if (input_key == KEY_Escape || input_key == KEY_Return)
+                done();
+        }
+
+
+        VerticalLayout layout
+        {
+            init()
+            {
+                left_margin = 10;
+                right_margin = 10;
+                top_margin = 10;
+                bottom_margin = 10;
+                spacing = 20;
+                options =
+                    LAYOUT_STRETCH_ITEMS |
+                    LAYOUT_ATTACH_LEFT |
+                    LAYOUT_ATTACH_RIGHT;
+                fill_pattern_color = CONTROL_COLOR;
+            }
+
+
+            LabelGadget message
+            {
+                init()
+                {
+                    font_family = CONTROL_INFO_FONT_FAMILY;
+                    font_size = CONTROL_INFO_FONT_SIZE;
+                    fill_pattern_color = CONTROL_MESSAGE_COLOR;
+                    text_color = CONTROL_MESSAGE_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                    margin = 10;
+                    border = 2;
+                    border_style = BORDER_RIDGE;
+                }
+            }
+
+
+            HorizontalLayout buttons
+            {
+                init()
+                {
+                    spacing = 20;
+                    options = LAYOUT_EQUAL_WIDTH;
+                }
+
+
+                ButtonGadget ok
+                {
+                    init()
+                    {
+                        text = "OK";
+                        font_family = CONTROL_BUTTON_FONT_FAMILY;
+                        font_size = CONTROL_BUTTON_FONT_SIZE;
+                        fill_pattern_color = CONTROL_BUTTON_COLOR;
+                        text_color = CONTROL_BUTTON_TEXT_COLOR;
+                        size = 120, 40;
+                        margin = 5;
+                        border = 4;
+                        is_focusable = true;
+                    }
+
+
+                    on_event:activate()
+                    {
+                        done();
+                    }
+                }
+            }
+        }
+
+
+        void done()
+        {
+            msgbox.hide();
+            msgbox.drop_page();
+        }
+
+
+        //======================================================================
+
+
+        void action(string msg, bool markup)
+        {
+            layout.message.text = msg, markup;
+
+            msgbox.title = "Error";
+            msgbox.show_page(this);
+            int prefw = preferred_width;
+            int prefh = preferred_height;
+            msgbox.geometry =
+                ctrl_window.x + (ctrl_window.width - prefw) / 2,
+                ctrl_window.y + (ctrl_window.height - prefh) / 2,
+                prefw, prefh;
+            msgbox.head = ctrl_window.head;
+            msgbox.show();
+            msgbox.activate();
+        }
+    }
+
+
+    void show_error(string msg, bool markup=false)
+    {
+        activate();
+        error_dialog.action(msg, markup);
+    }
+}
+
+
+// Sets up the control window and test window. Called by control.begin().
+void setup_windows()
+{
+    ctrl_window.show_page(control);
+
+    ctrl_window.position = ALIGN_CENTER, ALIGN_CENTER;
+    ctrl_window.head = 0;
+    ctrl_window.show();
+    ctrl_window.activate();
+
+    position_test_windows();
+}
+
+
+// Shows the test window.
+void show_test_windows()
+{
+    test_window1.show();
+    if (display_device.num_heads > 2) {
+        test_window_left.show();
+        test_window_left.show_test_page(black_page_left, now() + 16ms);
+        black_page_left.hide_cursor();
+
+        test_window_right.show();
+        test_window_right.show_test_page(black_page_right, now() + 16ms);
+        black_page_right.hide_cursor();
+    }
+}
+
+
+// Hides the test window.
+void hide_test_windows()
+{
+    test_window1.hide();
+    if (display_device.num_heads > 2) {
+        test_window_left.hide();
+        test_window_right.hide();
+    }
+}
+
+
+// Position the test window on target head.
+void position_test_windows(bool home=false)
+{
+    if (display_device.num_heads < 2) home = true;
+
+    if (home)
+    {
+        test_window1.is_fullscreen = false;
+        test_window1.is_maximized = false;
+        test_window_left.is_fullscreen = false;
+        test_window_left.is_maximized = false;
+        test_window_right.is_fullscreen = false;
+        test_window_right.is_maximized = false;
+        if (display_device.num_heads >= 2)
+        {
+            test_window1.set_virtual_size(display_device.head_width(3),
+                display_device.head_height(3));
+            test_window_left.set_virtual_size(display_device.head_width(1),
+                display_device.head_height(1));
+            test_window_right.set_virtual_size(display_device.head_width(2),
+                display_device.head_height(2));
+        }
+        else
+        {
+            test_window1.set_virtual_size(display_device.head_width(0),
+                display_device.head_height(0));
+        }
+        test_window1.head = 0;
+        test_window1.geometry = ALIGN_BEGIN, ALIGN_BEGIN, 40;
+        if (display_device.num_heads > 2) {
+            test_window_left.head = 0;
+            test_window_left.geometry = ALIGN_BEGIN, ALIGN_BEGIN, 40;
+            test_window_right.head = 0;
+            test_window_right.geometry = ALIGN_BEGIN, ALIGN_BEGIN, 40;
+        }
+
+        ctrl_window.is_fullscreen = false;
+        ctrl_window.is_maximized = false;
+        ctrl_window.head = 0;
+    }
+    else if(display_device.num_heads == 2) // handy for programmers.
+    {
+        test_window1.head = 1;
+        test_window1.set_virtual_size(0, 0);
+        test_window1.is_fullscreen = true;
+
+        ctrl_window.head = 0;
+//      ctrl_window.is_fullscreen = true;
+    }
+    else { // for use in the uilots baby labs.
+        test_window1.head = 3;
+        test_window1.set_virtual_size(0, 0);
+        test_window1.is_fullscreen = true;
+        
+        test_window_left.head = 1;
+        test_window_left.set_virtual_size(0, 0);
+        test_window_left.is_fullscreen = true;
+        
+        test_window_right.head = 2;
+        test_window_right.set_virtual_size(0, 0);
+        test_window_right.is_fullscreen = true;
+
+        ctrl_window.head = 0;
+    }
+}
+
+
+// To be called by page objects to make sure operations such as maximize/
+// fullscreen toggle, experiment abort and control window activation are
+// handled.
+void handle_special_key(Page page, char key, int modifiers)
+{
+    if (modifiers == INPUT_MOD_ALT)
+    {
+        if (key == KEY_F4)
+            signal(ctrl_window, SYS_QUIT);
+    }
+    else if (modifiers == INPUT_MOD_CONTROL)
+    {
+        if (key == KEY_F4)
+            signal(ctrl_window, SYS_STOP, 1);
+        else if (key == KEY_F12)
+        {
+            page.export_as_png(script_dir() +
+                page.object_name + "-" +
+                format_wt(now(),
+                    TIME_FORMAT_DATE_YYYYMMDD | TIME_FORMAT_TIME_HHMMSS,
+                    '\0', '\0', '-', '\0') + ".png", true);
+        }
+        else if (key == KEY_Pause || key == KEY_Break)
+            signal(ctrl_window, SYS_QUIT, 1);
+    }
+    else if (modifiers == INPUT_MOD_SHIFT)
+    {
+        if (key == KEY_Pause || key == KEY_Break)
+            signal(ctrl_window, SYS_QUIT, 1);
+    }
+    else if (modifiers == (INPUT_MOD_CONTROL|INPUT_MOD_SHIFT))
+    {
+        if (key == KEY_Pause || key == KEY_Break)
+            signal(ctrl_window, SYS_QUIT, 1);
+    }
+    else if (modifiers == 0 || modifiers == (INPUT_MOD_CONTROL|INPUT_MOD_ALT2))
+    {
+        if (key == KEY_F1)
+        {
+            test_window1.deactivate();
+            ctrl_window.activate();
+        }
+//      else if (key == KEY_F2)
+//          ;
+        else if (key == KEY_F3)
+            position_test_windows(true);
+        else if (key == KEY_F4)
+            position_test_windows(false);
+        else if (key == KEY_F5)
+            control.toggle_image_copy(test_window1);
+        else if (key == KEY_F10)
+            page.window.is_maximized = !page.window.is_maximized;
+        else if (key == KEY_F11)
+            page.window.is_fullscreen = !page.window.is_fullscreen;
+        else if (key == KEY_F12)
+        {
+            page.export_as_pdf(script_dir() +
+                page.object_name + "-" +
+                format_wt(now(),
+                    TIME_FORMAT_DATE_YYYYMMDD | TIME_FORMAT_TIME_HHMMSS,
+                    '\0', '\0', '-', '\0') + ".pdf", true);
+        }
+    }
+}
+
+
+// To be called by window objects (in case no page set) to make sure
+// operations such as maximize/fullscreen toggle, experiment abort and
+// control window activation are handled.
+void handle_special_key(Window win, char key, int modifiers)
+{
+    if (modifiers == INPUT_MOD_ALT)
+    {
+        if (key == KEY_F4)
+            signal(ctrl_window, SYS_QUIT);
+    }
+    else if (modifiers == INPUT_MOD_CONTROL)
+    {
+        if (key == KEY_F4)
+            signal(ctrl_window, SYS_STOP, 1);
+        else if (key == KEY_Pause || key == KEY_Break)
+            signal(ctrl_window, SYS_QUIT, 1);
+    }
+    else if (modifiers == INPUT_MOD_SHIFT)
+    {
+        if (key == KEY_Pause || key == KEY_Break)
+            signal(ctrl_window, SYS_QUIT, 1);
+    }
+    else if (modifiers == (INPUT_MOD_CONTROL|INPUT_MOD_SHIFT))
+    {
+        if (key == KEY_Pause || key == KEY_Break)
+            signal(ctrl_window, SYS_QUIT, 1);
+    }
+    else if (modifiers == 0 || modifiers == (INPUT_MOD_CONTROL|INPUT_MOD_ALT2))
+    {
+        if (key == KEY_F1)
+        {
+            test_window1.deactivate();
+            ctrl_window.activate();
+        }
+//      else if (key == KEY_F2)
+//          ;
+        else if (key == KEY_F3)
+            position_test_windows(true);
+        else if (key == KEY_F4)
+            position_test_windows(false);
+        else if (key == KEY_F5)
+            control.toggle_image_copy(test_window1);
+        else if (key == KEY_F10)
+            win.is_maximized = !win.is_maximized;
+        else if (key == KEY_F11)
+            win.is_fullscreen = !win.is_fullscreen;
+    }
+}

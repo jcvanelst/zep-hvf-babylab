@@ -1,0 +1,2511 @@
+/******************************************************************************\
+FILE:           std_baby_control.zm
+AUTHOR:         Theo Veenker <theo.veenker@beexy.nl>
+ADAPTED BY:     -
+
+DESCRIPTION:
+
+Provides the experiment control page for babylab experiments. It contains a
+canvas area (for displaying symbols representing lights and speakers and a
+counter), an information area and a row of buttons.
+
+
+HISTORY:
+2011-08-31 TV   Created as part of the standard Zep modules.
+
+\******************************************************************************/
+
+plugin zep_digio;
+
+import std_display;
+import std_defs;
+import std_baby_control_colors;
+import std_baby_control_fonts;
+import std_res_browser;
+import std_res_editor;
+import std_res_new;
+import std_pp_browser;
+import std_pp_editor;
+import std_pp_new;
+import std_exp_editor;
+import std_exp_kickoff;
+import std_database;
+import std_options;
+
+
+// Enumeration of experiment control interface states.
+enum ControlState
+{
+    CONTROL_IDLE,               // idle
+    CONTROL_READY,              // interface initialized
+    CONTROL_RES_EDIT,           // entering/editing researcher record
+    CONTROL_PP_EDIT,            // entering/editing participant record
+    CONTROL_EXP_EDIT,           // entering/editing experiment record
+    CONTROL_GRP_EDIT,           // entering/editing experiment group record
+    CONTROL_SES_EDIT,           // entering/editing experiment session record
+    CONTROL_KICKOFF,            // in experiment kick-off dialog
+    CONTROL_RUNNING,            // experiment running
+    CONTROL_ABORTED,            // experimenter activated quit
+    CONTROL_FINISHED            // experiment finished (normally or aborted)
+}
+
+
+enum ClockState
+{
+    CLOCK_IDLE,			// idle
+    CLOCK_READY,		// waiting to be started
+    CLOCK_RUNNING,		// running
+    CLOCK_PAUSED,		// paused
+    CLOCK_FINISHED		// done
+}
+
+
+// Enumeration of directions (or-able) stimulus is coming from.
+enum Direction
+{
+    FRONT_SIDE  = 1,            // front side
+    LEFT_SIDE   = 2,            // left side (from camera POV)
+    RIGHT_SIDE  = 4             // right side (from camera POV)
+}
+
+
+// Database folder name.
+const string    DATABASE_DIR    = "db";
+
+
+// Error value returned when attempting to checkout a locked database record.
+const int       RECORD_LOCKED   = -2;
+
+
+// Record for mapping key/button values to integer codes.
+record KeyCodeMapping
+{
+    int         key;            // key/button value
+    int         code;           // code to be produced for key/button
+}
+
+
+/*
+// Record for storing global experiment settings.
+record ExperimentSettings
+{
+    // Experiment version.
+    int         experiment_version;
+
+    // Database id. Any alphanumeric identifier is OK (typically set to "01").
+    string      database_id;
+
+    // ID of default researcher.
+    string      default_researcher_id;
+
+    // Whether experiment record, researcher record and group record should
+    // be checked out for updating (true) or reading only (false) during the
+    // experiment session. The participant record and experiment session
+    // record are always checked out for updating.
+    bool        experiment_record_updateable;
+    bool        researcher_record_updateable;
+    bool        group_record_updateable;
+
+    // Controls whether the assigned group is shown in the control window.
+    bool        show_assigned_group;
+}
+*/
+
+
+Page control
+{
+    ControlState state;         // experiment control state (see above)
+    string      ppid;           // participant id
+    string      resid;          // researcher id
+    bool        copytestwin;    // if set, show copy of test window(s)
+    bool        showgaze;       // if set, enable showing gaze symbol
+    bool        showfixation;   // if set, enable showing fixation symbol
+    bool        showoutlines;   // if set, show outline of lights
+    int         lightsmask;     // current lights on/off mask
+    int         dblockcount;    // counter for handling nested lock db calls
+    KeyCodeMapping[..] keymap;  // key to code mappings
+    KeyCodeMapping[..] btnmap;  // button to code mappings
+
+    int         current_trial;  // The current trial in the experiment.
+
+
+    post_init()
+    {
+        if (begin() != OK) terminate;
+    }
+
+
+    on_event:close()
+    {
+        signal(ctrl_window, SYS_QUIT);
+    }
+
+
+    on_event:key_press()
+    {
+        // See also ButtonBox object below.
+        bool handled;
+//        if (input_modifiers == 0 && state >= CONTROL_RUNNING &&
+//            keymap.size > 0 && target != null)
+//        {
+//            int i = find_key(int(input_key));
+//            if (i >= 0)
+//            {
+//                signal_target(keymap[i].code);
+//                handled = true;
+//            }
+//        }
+
+        if (!handled) handle_special_key(this, input_key, input_modifiers);
+    }
+
+
+    on_event:message()
+    {
+        if (state == CONTROL_RES_EDIT)
+        {
+            state = CONTROL_READY;
+            if (message_arg == SYS_CONTINUE)
+                resid = res_browser.resid;
+            get_researcher_info(resid);
+        }
+        else if (state == CONTROL_PP_EDIT)
+        {
+            state = CONTROL_READY;
+            if (message_arg == SYS_CONTINUE)
+                ppid = pp_browser.ppid;
+            get_participant_info(ppid);
+        }
+        else if (state == CONTROL_EXP_EDIT)
+        {
+            state = CONTROL_READY;
+            get_experiment_info();
+        }
+        else if (state == CONTROL_KICKOFF)
+        {
+            if (message_arg == SYS_CONTINUE)
+                really_begin_experiment();
+            else if (message_arg == SYS_CANCEL)
+                cancel_begin_experiment();
+        }
+        else if (state >= CONTROL_RUNNING)
+        {
+            if (message_arg == SYS_FINISH) // Sent on exit by experiment object.
+            {
+                end_experiment();       // Check-in session if not yet done.
+                terminate;
+            }
+            else if (message_arg == SYS_UPDATE)
+            {
+                if (message_arg2 == 0)
+                    show_state_info();
+                else
+                    clear_state_info();
+            }
+        }
+    }
+
+
+    VerticalLayout layout
+    {
+        LabelGadget[..] partnames;      // label gadgets for part names
+        LabelGadget[..] partvalues;     // label gadgets for part counters
+
+
+        init()
+        {
+            left_margin = 4;
+            right_margin = 4;
+            top_margin = 4;
+            bottom_margin = 4;
+            spacing = 0;
+            options = LAYOUT_ATTACH_LEFT | LAYOUT_ATTACH_RIGHT;
+            fill_pattern_color = CONTROL_COLOR;
+            min_width = 700;
+            min_height = 600;
+
+            // only enable part 1
+            // The experimenter shouldn't see where in the experiment the
+            // Infant is.
+            partnames.size = 2;
+            partnames[0] = info2.state1lab;
+            partnames[1] = info2.state2lab;
+//            partnames[2] = info2.state3lab;
+//            partnames[3] = info2.state4lab;
+//            partnames[4] = info2.state5lab;
+//            partnames[5] = info2.state6lab;
+            partvalues.size = 2;
+            partvalues[0] = info2.state1;
+            partvalues[1] = info2.state2;
+//            partvalues[2] = info2.state3;
+//            partvalues[3] = info2.state4;
+//            partvalues[4] = info2.state5;
+//            partvalues[5] = info2.state6;
+        }
+
+
+        CanvasGadget canvas
+        {
+            init()
+            {
+                //original.
+                //fill_pattern_color = CONTROL_CANVAS_COLOR;
+
+                // to work with OBS recording make it blue (it's a blue screen)
+                fill_pattern_color = color:blue;
+            }
+
+
+            on_event:resize()
+            {
+                copywin1.width = actual_width - 2 * (margin + border);
+                copywin1.height = actual_height - 2 * (margin + border);
+                copywin1.x = margin + border;
+                copywin1.y = margin + border;
+
+                front_light_icon.offset_x = actual_width / 2;
+                front_light_icon.offset_y = 25; //75;
+                left_light_icon.offset_x = 75;
+                left_light_icon.offset_y = actual_height / 2;
+                right_light_icon.offset_x = actual_width - 75;
+                right_light_icon.offset_y = actual_height / 2;
+
+                front_speaker_icon.offset_x = front_light_icon.offset_x;
+                front_speaker_icon.offset_y = front_light_icon.offset_y;// + 80;
+                left_speaker_icon.offset_x = left_light_icon.offset_x;
+                left_speaker_icon.offset_y = left_light_icon.offset_y + 100;
+                right_speaker_icon.offset_x = right_light_icon.offset_x;
+                right_speaker_icon.offset_y = right_light_icon.offset_y + 100;
+
+                counter_active.offset_x = actual_width / 4 * 3;
+                counter_active.offset_y = 75;
+
+                counter.offset_x = actual_width - 50;
+                counter.offset_y = 50;
+
+                counter_background.width = counter.offset_x - counter_active.offset_x + ( counter_active.radius * 2 ) + 5;
+                counter_background.height = counter.line_height;
+
+                counter_background.offset_x = counter_active.offset_x - counter_active.radius - 5;
+                counter_background.offset_y = counter.offset_y;
+
+                attention_cross.handle_resize();
+            }
+
+
+            ImageShape copywin1
+            {
+            }
+
+
+            RectangleShape gaze
+            {
+                init()
+                {
+                    width = 10;
+                    height = 10;
+                    x = -5;
+                    y = -5;
+                    fill_pattern_color = rgb:FF40FF00;
+                }
+            }
+
+
+            CrossShape fixation
+            {
+                init()
+                {
+                    radius = 8;
+                    line_pattern_color = rgb:FFFF4000;
+                }
+            }
+
+
+            CircleShape front_light_icon
+            {
+                init()
+                {
+                    radius = 30;
+                    line_width = 5;
+                    line_pattern_color = CONTROL_FRONT_LIGHT_COLOR;
+                }
+            }
+
+
+            CircleShape left_light_icon
+            {
+                init()
+                {
+                    radius = 30;
+                    line_width = 5;
+                    line_pattern_color = CONTROL_SIDE_LIGHT_COLOR;
+                }
+            }
+
+
+            CircleShape right_light_icon
+            {
+                init()
+                {
+                    radius = 30;
+                    line_width = 5;
+                    line_pattern_color = CONTROL_SIDE_LIGHT_COLOR;
+                }
+            }
+
+
+            PolygonShape front_speaker_icon
+            {
+                init()
+                {
+                    num_points = 6;
+                    set_x(0, -20);
+                    set_y(0, -20);
+                    set_x(1, 20);
+                    set_y(1, -20);
+                    set_x(2, 20);
+                    set_y(2, 0);
+                    set_x(3, 40);
+                    set_y(3, 20);
+                    set_x(4, -40);
+                    set_y(4, 20);
+                    set_x(5, -20);
+                    set_y(5, 0);
+                    fill_pattern_color = CONTROL_SPEAKER_COLOR;
+                }
+            }
+
+
+            PolygonShape left_speaker_icon
+            {
+                init()
+                {
+                    num_points = 6;
+                    set_x(0, -20);
+                    set_y(0, -20);
+                    set_x(1, 20);
+                    set_y(1, -20);
+                    set_x(2, 20);
+                    set_y(2, 0);
+                    set_x(3, 40);
+                    set_y(3, 20);
+                    set_x(4, -40);
+                    set_y(4, 20);
+                    set_x(5, -20);
+                    set_y(5, 0);
+                    rotation = -M_PI / 2;
+                    fill_pattern_color = CONTROL_SPEAKER_COLOR;
+                }
+            }
+
+
+            PolygonShape right_speaker_icon
+            {
+                init()
+                {
+                    num_points = 6;
+                    set_x(0, -20);
+                    set_y(0, -20);
+                    set_x(1, 20);
+                    set_y(1, -20);
+                    set_x(2, 20);
+                    set_y(2, 0);
+                    set_x(3, 40);
+                    set_y(3, 20);
+                    set_x(4, -40);
+                    set_y(4, 20);
+                    set_x(5, -20);
+                    set_y(5, 0);
+                    rotation = M_PI / 2;
+                    fill_pattern_color = CONTROL_SPEAKER_COLOR;
+                }
+            }
+
+            RectangleShape counter_background
+            {
+                init()
+                {
+                    corner_radius = 10;
+                    fill_pattern_color = color:black;
+                }
+            }
+
+            CircleShape counter_active
+            {
+                init()
+                {
+                    radius = 15;
+                    fill_pattern_color = CONTROL_COUNTER_COLOR;
+                }
+            }
+
+
+            TextShape counter
+            {
+                init()
+                {
+                    font_family = CONTROL_COUNTER_FONT_FAMILY;
+                    font_size = CONTROL_COUNTER_FONT_SIZE;
+                    hor_alignment = ALIGN_END;
+                    line_pattern_color = CONTROL_COUNTER_COLOR;
+                    is_visible = true;
+                }
+            }
+
+            CrossShape attention_cross
+            {
+                const color ATT_CROSS_COLOR = color:red;
+
+                on_event:init()
+                {
+                    line_pattern_color = ATT_CROSS_COLOR;
+                    line_width = 5;
+                    is_visible = false;
+                    radius = real(canvas.actual_height)/20.0;
+                    //x = 0;
+                    //y = 0;
+                    rotation = 0;
+                }
+
+                void handle_resize()
+                {
+                    // keep the cross in the lower left corner.
+                    radius = real(canvas.actual_height)/20.0;
+                    offset_x = radius * 2;
+                    offset_y = canvas.actual_height - radius * 2;
+                }
+
+                void inc_rotation()
+                {
+                    rotation = rotation + 2.0 * M_PI / 10.0;
+                }
+            }
+        }
+
+
+        HorGridLayout info1
+        {
+            init()
+            {
+                top_margin = 4;
+                wrap_count = 8;
+                options = LAYOUT_EQUAL_WIDTH | LAYOUT_STRETCH_ITEMS_HOR;
+                height = -1;
+                fill_pattern_color = CONTROL_INFO_COLOR;
+            }
+
+
+            LabelGadget
+            {
+                init()
+                {
+                    text = "experiment:";
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_INFO_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget experiment
+            {
+                init()
+                {
+                    text = script_name();
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_INFO_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget
+            {
+                init()
+                {
+                    text = "status:";
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_INFO_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget expstatus
+            {
+                init()
+                {
+                    text = "-";
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_INFO_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget
+            {
+                init()
+                {
+                    text = "researcher:";
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_INFO_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget researcher
+            {
+                init()
+                {
+                    text = "-";
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_INFO_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget
+            {
+                init()
+                {
+                    text = "participant:";
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_INFO_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget participant
+            {
+                init()
+                {
+                    text = "-";
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_INFO_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget
+            {
+                init()
+                {
+                    text = "group:";
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_INFO_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget group
+            {
+                init()
+                {
+                    text = "-";
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_INFO_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget
+            {
+                init()
+                {
+                    text = "session:";
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_INFO_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget session
+            {
+                init()
+                {
+                    text = "-";
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_INFO_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+        }
+
+
+        HorGridLayout info2
+        {
+            init()
+            {
+                top_margin = 4;
+                wrap_count = 8;
+                options = LAYOUT_EQUAL_WIDTH | LAYOUT_STRETCH_ITEMS_HOR;
+                height = -1;
+                fill_pattern_color = CONTROL_INFO_COLOR;
+            }
+
+
+            LabelGadget state1lab
+            {
+                init()
+                {
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_STATE_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget state1
+            {
+                init()
+                {
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_INFO_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget state2lab
+            {
+                init()
+                {
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_STATE_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget state2
+            {
+                init()
+                {
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_INFO_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget state3lab
+            {
+                init()
+                {
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_STATE_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget state3
+            {
+                init()
+                {
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_INFO_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget state4lab
+            {
+                init()
+                {
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_STATE_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget state4
+            {
+                init()
+                {
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_INFO_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget state5lab
+            {
+                init()
+                {
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_STATE_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget state5
+            {
+                init()
+                {
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_INFO_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget state6lab
+            {
+                init()
+                {
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_STATE_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+
+
+            LabelGadget state6
+            {
+                init()
+                {
+                    font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                    font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                    text_color = CONTROL_INFO_TEXT_COLOR;
+                    is_wrapping = false;
+                    hor_alignment = ALIGN_BEGIN;
+                    ver_alignment = ALIGN_BEGIN;
+                }
+            }
+        }
+
+
+        LabelGadget status
+        {
+            init()
+            {
+                font_family = CONTROL_MAIN_INFO_FONT_FAMILY;
+                font_size = CONTROL_MAIN_INFO_FONT_SIZE;
+                fill_pattern_color = CONTROL_INFO_COLOR;
+                text_color = CONTROL_STATUS_TEXT_COLOR;
+                is_wrapping = false;
+                hor_alignment = ALIGN_BEGIN;
+                ver_alignment = ALIGN_BEGIN;
+                height = -1;
+            }
+        }
+
+
+        HorizontalLayout buttons
+        {
+            init()
+            {
+                top_margin = 8;
+                spacing = 8;
+                height = -1;
+            }
+
+
+            ButtonGadget experiment
+            {
+                init()
+                {
+                    text = "Experiment";
+                    font_family = CONTROL_BUTTON_FONT_FAMILY;
+                    font_size = CONTROL_BUTTON_FONT_SIZE;
+                    fill_pattern_color = CONTROL_BUTTON_COLOR;
+                    text_color = CONTROL_BUTTON_TEXT_COLOR;
+                    margin = 5;
+                    border = 4;
+//                  is_focusable = true;
+                }
+
+
+                on_event:activate()
+                {
+                    if (state != CONTROL_READY) return;
+
+                    state = CONTROL_EXP_EDIT;
+
+                    exp_editor.action(control);
+                }
+            }
+
+
+            ButtonGadget researcher
+            {
+                init()
+                {
+                    text = "Researcher";
+                    font_family = CONTROL_BUTTON_FONT_FAMILY;
+                    font_size = CONTROL_BUTTON_FONT_SIZE;
+                    fill_pattern_color = CONTROL_BUTTON_COLOR;
+                    text_color = CONTROL_BUTTON_TEXT_COLOR;
+                    margin = 5;
+                    border = 4;
+//                  is_focusable = true;
+                }
+
+
+                on_event:activate()
+                {
+                    if (state != CONTROL_READY) return;
+
+                    state = CONTROL_RES_EDIT;
+
+                    res_browser.action(resid, control);
+                }
+            }
+
+
+            ButtonGadget participant
+            {
+                init()
+                {
+                    text = "Participant";
+                    font_family = CONTROL_BUTTON_FONT_FAMILY;
+                    font_size = CONTROL_BUTTON_FONT_SIZE;
+                    fill_pattern_color = CONTROL_BUTTON_COLOR;
+                    text_color = CONTROL_BUTTON_TEXT_COLOR;
+                    margin = 5;
+                    border = 4;
+//                  is_focusable = true;
+                }
+
+
+                on_event:activate()
+                {
+                    if (state != CONTROL_READY) return;
+
+                    state = CONTROL_PP_EDIT;
+
+                    pp_browser.action(ppid, control);
+                }
+            }
+
+
+            Spacer spacer
+            {
+            }
+
+
+            ButtonGadget help
+            {
+                init()
+                {
+                    text = "Help";
+                    font_family = CONTROL_BUTTON_FONT_FAMILY;
+                    font_size = CONTROL_BUTTON_FONT_SIZE;
+                    fill_pattern_color = CONTROL_BUTTON_COLOR;
+                    text_color = CONTROL_BUTTON_TEXT_COLOR;
+                    margin = 5;
+                    border = 4;
+//                  is_focusable = true;
+                }
+
+
+                on_event:activate()
+                {
+                    ctrl_window.show_help();
+                }
+            }
+
+
+            ButtonGadget startexp
+            {
+                init()
+                {
+                    text = "Start";
+                    font_family = CONTROL_BUTTON_FONT_FAMILY;
+                    font_size = CONTROL_BUTTON_FONT_SIZE;
+                    fill_pattern_color = CONTROL_BUTTON_COLOR;
+                    text_color = CONTROL_BUTTON_TEXT_COLOR;
+                    margin = 5;
+                    border = 4;
+//                  is_focusable = true;
+                }
+
+
+                on_event:activate()
+                {
+                    if (state != CONTROL_READY) return;
+
+//                  begin_experiment();
+                    confirm_begin_experiment();
+                }
+            }
+
+
+            ButtonGadget quitexp
+            {
+                init()
+                {
+                    text = "Quit";
+                    font_family = CONTROL_BUTTON_FONT_FAMILY;
+                    font_size = CONTROL_BUTTON_FONT_SIZE;
+                    fill_pattern_color = CONTROL_BUTTON_COLOR;
+                    text_color = CONTROL_BUTTON_TEXT_COLOR;
+                    margin = 5;
+                    border = 4;
+//                  is_focusable = true;
+                }
+
+
+                on_event:activate()
+                {
+                    signal(ctrl_window, SYS_QUIT);
+                }
+            }
+        }
+    }
+
+
+    void set_image_copy(Window win)
+    {
+        if (win != null)
+        {
+            layout.canvas.copywin1.image = win;
+            layout.canvas.copywin1.is_visible = true;
+            copytestwin = true;
+        }
+        else
+        {
+            layout.canvas.copywin1.image = null;
+            layout.canvas.copywin1.is_visible = false;
+            copytestwin = false;
+        }
+    }
+
+
+    void toggle_image_copy(Window win)
+    {
+        if (copytestwin)
+        {
+            layout.canvas.copywin1.image = null;
+            layout.canvas.copywin1.is_visible = false;
+            copytestwin = false;
+        }
+        else
+        {
+            layout.canvas.copywin1.image = win;
+            layout.canvas.copywin1.is_visible = true;
+            copytestwin = true;
+        }
+    }
+
+
+    void show_gaze(real xeye, real yeye)
+    {
+        if (!showgaze) return;
+
+        // Parameters are assumed to be in range [0..1>.
+
+        int m = layout.canvas.margin + layout.canvas.border;
+        xeye *= layout.canvas.actual_width - 2 * m;
+        yeye *= layout.canvas.actual_height - 2 * m;
+
+        xeye += m;
+        yeye += m;
+
+        layout.canvas.gaze.offset_x = xeye;
+        layout.canvas.gaze.offset_y = yeye;
+        layout.canvas.gaze.is_visible = true;
+    }
+
+
+    void hide_gaze()
+    {
+        layout.canvas.gaze.is_visible = false;
+    }
+
+
+    void toggle_show_gaze()
+    {
+        showgaze = !showgaze;
+
+        if (!showgaze) hide_gaze();
+    }
+
+
+    void show_fixation(real xeye, real yeye)
+    {
+        if (!showfixation) return;
+
+        // Parameters are assumed to be in range [0..1>.
+
+        int m = layout.canvas.margin + layout.canvas.border;
+        xeye *= layout.canvas.actual_width - 2 * m;
+        yeye *= layout.canvas.actual_height - 2 * m;
+
+        xeye += m;
+        yeye += m;
+
+        layout.canvas.fixation.offset_x = xeye;
+        layout.canvas.fixation.offset_y = yeye;
+        layout.canvas.fixation.is_visible = true;
+    }
+
+
+    void hide_fixation()
+    {
+        layout.canvas.fixation.is_visible = false;
+    }
+
+
+    void toggle_show_fixations()
+    {
+        showfixation = !showfixation;
+
+        if (!showfixation) hide_fixation();
+    }
+
+
+    void show_state_info()
+    {
+        // Display the phase so that you can see
+        layout.partnames[0].text = experiment.level_part_name(1);
+        layout.partnames[1].text = "trial";
+
+        layout.partvalues[1].text = string(current_trial);
+    }
+
+
+    void clear_state_info()
+    {
+        int nlabels = layout.partnames.size;
+        int n;
+        while (n < nlabels)
+        {
+            layout.partnames[n].text = "";
+            if (n < layout.partvalues.size)
+                layout.partvalues[n].text = "";
+            n++;
+        }
+    }
+
+
+    Timer clock
+    {
+        ClockState state;       // idle, ready, running, paused, finished
+        bool    released;       // if not set, cumulative time stays 0
+        time[..] timestamps;    // array of time stamps
+        time    timeref;        // most recent start time reference
+        dur     duration;       // cumulative running time
+        dur     total_runtime;  // total running time
+
+
+        init()
+        {
+            state = CLOCK_IDLE;
+        }
+
+
+        on_event:expire()
+        {
+            layout.canvas.counter.text =
+                string(int(duration + (expire_time - timeref)) / 100) + "00";
+            start(expected_expire_time + 100ms);
+        }
+    }
+
+    // Timer for the attention getter cross rotation
+    // Its handy to see the attention getter cross. It is rotating when
+    // the attention getter stimulus is active.
+    Timer att_cross_clock
+    {
+        on_event:expire()
+        {
+            // make the cross rotate about once each second.
+            layout.canvas.attention_cross.inc_rotation();
+            start(expected_expire_time + 100ms);
+        }
+    }
+
+
+    ResponseBox button_box
+    {
+        dur     framedur;       // animation interval
+        int     sectionmask;    // which LEDs (9 bits) should be affected
+        int     patternindex;   // index in pattern array
+        int[..] pattern;        // pattern array (bit masks)
+
+
+        init()
+        {
+            framedur = 200ms;
+            pattern.size = 4;
+            pattern[0] = 0x049; // 001001001
+            pattern[1] = 0x092; // 010010010
+            pattern[2] = 0x124; // 100100100
+            pattern[3] = 0x092; // 010010010
+        }
+
+
+        on_event:press()
+        {
+            if (state >= CONTROL_RUNNING && btnmap.size > 0 &&
+                control.target != null)
+            {
+                int i = find_button(input_button);
+                if (i >= 0)
+                    control.signal_target(btnmap[i].code);
+            }
+        }
+
+
+        int find_button(int btn)
+        {
+            int nitems = btnmap.size;
+            int n;
+            while (n < nitems)
+            {
+                if (btn == btnmap[n].key) return n;
+                n++;
+            }
+
+            return -1;
+        }
+
+
+        void enable_button(int btn, int code)
+        {
+            if (btn < 0 || btn >= 5) return;
+
+            int i = find_button(btn);
+            if (i < 0)
+            {
+                i = btnmap.size;
+                btnmap.size = i + 1;
+            }
+            btnmap[i].key = btn;
+            btnmap[i].code = code;
+        }
+
+
+        void enable_all_buttons(int code)
+        {
+            btnmap.size = 5;
+            btnmap[0].key = 0;
+            btnmap[0].code = code;
+            btnmap[1].key = 1;
+            btnmap[1].code = code;
+            btnmap[2].key = 2;
+            btnmap[2].code = code;
+            btnmap[3].key = 3;
+            btnmap[3].code = code;
+            btnmap[4].key = 4;
+            btnmap[4].code = code;
+        }
+
+
+        void disable_buttons()
+        {
+            btnmap.size = 0;
+        }
+
+
+        void start_light(int mask, dur refresh=200ms)
+        {
+            int oldmask = sectionmask;
+            if (mask & FRONT_SIDE)
+                sectionmask |= 0x007;
+            if (mask & LEFT_SIDE)
+                sectionmask |= 0x038;
+            if (mask & RIGHT_SIDE)
+                sectionmask |= 0x1C0;
+
+            if (refresh <= 0s)
+                framedur = 200s;
+            else
+                framedur = max(refresh, 10ms);
+
+            if (sectionmask != 0 && oldmask == 0)
+            {
+                patternindex = 0;
+                animtimer.start(now());
+            }
+        }
+
+
+        void stop_light(int mask)
+        {
+            if (mask & FRONT_SIDE)
+                sectionmask &= ~0x007;
+            if (mask & LEFT_SIDE)
+                sectionmask &= ~0x038;
+            if (mask & RIGHT_SIDE)
+                sectionmask &= ~0x1C0;
+
+            if (sectionmask == 0)
+            {
+                animtimer.abort();
+            }
+        }
+
+
+        Timer animtimer
+        {
+            on_event:expire()
+            {
+                if (++button_box.patternindex == button_box.pattern.size)
+                    button_box.patternindex = 0;
+                start(expire_time + framedur);
+            }
+        }
+    }
+
+
+    //--------------------------------------------------------------------------
+
+
+    int master_lock_database()
+    {
+        if (dblockcount != 0) return ERROR;
+
+        // Lock the database to gain exclusive access.
+        if (expdb.lock() != OK) return ERROR;
+
+        dblockcount = -1;
+
+        return OK;
+    }
+
+
+    int master_unlock_database(bool keepver=true)
+    {
+        if (dblockcount != -1) return ERROR;
+
+        int err = OK;
+
+        // Give up exclusive access to the database.
+        if (expdb.unlock(keepver) != OK) err = ERROR;
+
+        dblockcount = 0;
+
+        return err;
+    }
+
+
+    int lock_database()
+    {
+        if (dblockcount < 0) return OK;         // Master lock in effect.
+
+        if (dblockcount > 0)
+        {
+            dblockcount++;
+            return OK;
+        }
+
+        // Lock the database to gain exclusive access.
+        if (expdb.lock() != OK) return ERROR;
+
+        dblockcount++;
+
+        return OK;
+    }
+
+
+    int unlock_database()
+    {
+        if (dblockcount <= 0) return OK;    // Master lock in effect.
+
+        dblockcount--;
+        if (dblockcount > 0) return OK;
+
+        int err = OK;
+
+        // Give up exclusive access to the database.
+        if (expdb.unlock() != OK) err = ERROR;
+
+        return err;
+    }
+
+
+    //--------------------------------------------------------------------------
+
+
+    int researcher_exists(string id)
+    {
+        // Lock the database.
+        int err = lock_database();
+        if (err) return ERROR;
+
+        // Check if researcher record exists.
+        if (expdb.researcher_exists(id))
+            err = 1;
+
+        // Unlock the database.
+        unlock_database();
+
+        return err;     // 0: doesn't exist, 1: exists, -1: don't know (error)
+    }
+
+
+    int create_researcher(string id, bool failifexists)
+    {
+        // Lock the database.
+        int err = lock_database();
+        if (err) return err;
+
+        // Add researcher record if not yet done.
+        if (!expdb.researcher_exists(id))
+            err = expdb.add_researcher(id);
+        else if (failifexists)
+            err = ERROR;
+
+        // Unlock the database.
+        if (unlock_database() != OK) err = ERROR;
+
+        return err;
+    }
+
+
+    int checkout_researcher(string id, bool readonly, bool verbose=false)
+    {
+        if (!is_valid_alphanum(id)) return ERROR;
+
+        // Lock the database.
+        int err = lock_database();
+        if (err) return err;
+
+        // Checkout researcher record for desired mode.
+        if (!expdb.researcher_exists(id))
+        {
+            err = ERROR;
+            if (verbose)
+            {
+                ctrl_window.show_error("Researcher record \"" + id +
+                    "\" doesn't exist.");
+            }
+        }
+        if (!err && !expdb.researcher_accessible(id, readonly))
+        {
+            err = RECORD_LOCKED;
+            if (verbose)
+            {
+                ctrl_window.show_error("Selected researcher record is locked.");
+            }
+        }
+        if (!err)
+            err = expdb.checkout_researcher(id, readonly);
+
+        // On error unlock the database.
+        if (err) unlock_database();
+
+        return err;
+    }
+
+
+    int checkin_researcher()
+    {
+        // Checkin researcher record.
+        int err = expdb.checkin_researcher();
+
+        // Unlock the database.
+        if (unlock_database() != OK) err = ERROR;
+
+        return err;
+    }
+
+
+    int get_researcher_info(string id)
+    {
+        if (!is_valid_alphanum(id))
+        {
+            layout.info1.researcher.text = "-";
+            return ERROR;
+        }
+
+        int err = checkout_researcher(id, true);
+        if (!err)
+        {
+            resid = expdb.researcher.id;
+            layout.info1.researcher.text = resid;
+            err = checkin_researcher();
+        }
+        else
+        {
+            resid = id;
+            layout.info1.researcher.text = "-";
+        }
+
+        return err;
+    }
+
+
+    //--------------------------------------------------------------------------
+
+
+    int participant_exists(string id)
+    {
+        // Lock the database.
+        int err = lock_database();
+        if (err) return ERROR;
+
+        // Check if participant record exists.
+        if (expdb.participant_exists(id))
+            err = 1;
+
+        // Unlock the database.
+        unlock_database();
+
+        return err;     // 0: doesn't exist, 1: exists, -1: don't know (error)
+    }
+
+
+    int create_participant(string id, bool failifexists)
+    {
+        // Lock the database.
+        int err = lock_database();
+        if (err) return err;
+
+        // Add participant record if not yet done.
+        if (!expdb.participant_exists(id))
+            err = expdb.add_participant(id);
+        else if (failifexists)
+            err = ERROR;
+
+        // Unlock the database.
+        if (unlock_database() != OK) err = ERROR;
+
+        return err;
+    }
+
+
+    int checkout_participant(string id, bool readonly, bool verbose=false)
+    {
+        if (!is_valid_alphanum(id)) return ERROR;
+
+        // Lock the database.
+        int err = lock_database();
+        if (err) return err;
+
+        // Checkout participant record for desired mode.
+        if (!expdb.participant_exists(id))
+        {
+            err = ERROR;
+            if (verbose)
+            {
+                ctrl_window.show_error("Participant record \"" + id +
+                    "\" doesn't exist.");
+            }
+        }
+        if (!err && !expdb.participant_accessible(id, readonly))
+        {
+            err = RECORD_LOCKED;
+            if (verbose)
+            {
+                ctrl_window.show_error("Selected participant record is locked.");
+            }
+        }
+        if (!err)
+            err = expdb.checkout_participant(id, readonly);
+
+        // On error unlock the database.
+        if (err) unlock_database();
+
+        return err;
+    }
+
+
+    int checkin_participant()
+    {
+        // Checkin participant record.
+        int err = expdb.checkin_participant();
+
+        // Unlock the database.
+        if (unlock_database() != OK) err = ERROR;
+
+        return err;
+    }
+
+
+    int get_participant_info(string id)
+    {
+        int err = checkout_participant(id, true);
+        if (!err)
+        {
+            ppid = expdb.participant.id;
+            layout.info1.participant.text = ppid;
+            err = checkin_participant();
+        }
+        else
+        {
+            ppid = id;
+            layout.info1.participant.text = "-";
+        }
+
+        return err;
+    }
+
+
+    //--------------------------------------------------------------------------
+
+
+    int create_experiment()
+    {
+        // Lock the database.
+        int err = lock_database();
+        if (err) return err;
+
+        // Add experiment record if not yet done.
+        if (!expdb.experiment_exists(script_name()))
+            err = expdb.add_experiment(script_name());
+
+        // Unlock the database.
+        if (unlock_database() != OK) err = ERROR;
+
+        return err;
+    }
+
+
+    int checkout_experiment(bool readonly)
+    {
+        // Lock the database.
+        int err = lock_database();
+        if (err) return err;
+
+        // Checkout experiment record for desired mode.
+        err = expdb.checkout_experiment(script_name(), readonly);
+
+        // On error unlock the database.
+        if (err) unlock_database();
+
+        return err;
+    }
+
+
+    int checkin_experiment()
+    {
+        // Checkin experiment record.
+        int err = expdb.checkin_experiment();
+
+        // Unlock the database.
+        if (unlock_database() != OK) err = ERROR;
+
+        return err;
+    }
+
+
+    int check_experiment_groups()
+    {
+        // Check if desired experiment groups are present.
+        int err = checkout_experiment(true);
+        if (err) return err;
+        TestGroup firstgroup;
+        TestGroup group;
+        while (true) {
+            string groupname = string(group);
+            if (!expdb.experiment.group_exists(groupname))
+            {
+                err = ERROR;
+                break;
+            }
+            if (++group == firstgroup) break;   // Break if all done.
+        }
+        checkin_experiment();
+
+        // If not all experiment groups present then create them.
+        if (err)
+        {
+            err = checkout_experiment(false);
+            if (err) return err;
+            group = firstgroup;
+            while (true) {
+                string groupname = string(group);
+                if (!expdb.experiment.group_exists(groupname) &&
+                        expdb.experiment.add_group(groupname) != OK)
+                    err = ERROR;
+                if (++group == firstgroup) break;   // Break if all done.
+            }
+            checkin_experiment();
+        }
+
+        return err;
+    }
+
+
+    int get_experiment_info()
+    {
+        // Lock the database.
+        int err = lock_database();
+        if (err) return err;
+
+        // Checkout experiment record for reading.
+        err = checkout_experiment(true);
+
+        if (!err)
+        {
+            if (expdb.experiment.status == EXP_STATUS_PREPARING)
+                layout.info1.expstatus.text = "preparing";
+            else if (expdb.experiment.status == EXP_STATUS_PILOTING)
+                layout.info1.expstatus.text = "piloting";
+            else if (expdb.experiment.status == EXP_STATUS_TESTING)
+                layout.info1.expstatus.text = "testing";
+            else if (expdb.experiment.status == EXP_STATUS_CLOSED)
+                layout.info1.expstatus.text = "closed";
+            checkin_experiment();
+        }
+        else
+        {
+            layout.info1.expstatus.text = "-";
+        }
+
+        // Unlock the database.
+        unlock_database();
+
+        return err;
+    }
+
+
+    //--------------------------------------------------------------------------
+
+
+    int checkout_session_part1()
+    {
+        // Check if desired experiment groups are present.
+        int err = check_experiment_groups();
+        if (err) return ERROR;
+
+        // Check out experiment record.
+        err = checkout_experiment(!EXPERIMENT_RECORD_UPDATEABLE);
+        if (err) return ERROR;
+
+        // If experiment status is CLOSED fail.
+        if (expdb.experiment.status == EXP_STATUS_CLOSED)
+        {
+            checkin_experiment();
+            ctrl_window.show_error("Experiment is marked <b>closed</b>.\n"
+                "No more sessions can be run.", true);
+            return ERROR;
+        }
+
+
+        // If no researcher specified then substitute the default researcher id.
+        if (!is_valid_alphanum(resid))
+        {
+            create_researcher(DEFAULT_RESEARCHER_ID, false);
+            get_researcher_info(DEFAULT_RESEARCHER_ID);
+        }
+
+        // If still no researcher specified then fail.
+        if (!is_valid_alphanum(resid))
+        {
+            checkin_experiment();
+            ctrl_window.show_error("No researcher selected.");
+            return ERROR;
+        }
+
+
+        // If no participant specified and experiment status is PREPARING
+        // then substitute 'dummy'.
+        if (!is_valid_alphanum(ppid) &&
+                expdb.experiment.status == EXP_STATUS_PREPARING)
+        {
+            create_participant("dummy", false);
+            get_participant_info("dummy");
+        }
+
+        // If still no participant specified then fail.
+        if (!is_valid_alphanum(ppid))
+        {
+            checkin_experiment();
+            ctrl_window.show_error("No participant selected.");
+            return ERROR;
+        }
+
+
+        // Checkout researcher record.
+        err = checkout_researcher(resid, !RESEARCHER_RECORD_UPDATEABLE, true);
+        if (err)
+        {
+            checkin_experiment();
+            return ERROR;
+        }
+
+        // Check researcher record fields.
+        err = check_researcher_fields();
+        if (err)
+        {
+            checkin_researcher();
+            checkin_experiment();
+            ctrl_window.show_error("Invalid or unset value in researcher "
+                "record.");
+            return ERROR;
+        }
+
+
+        // Checkout participant record for updating. This assures that a
+        // participant can only take part in one session at a time.
+        err = checkout_participant(ppid, false, true);
+        if (err)
+        {
+            checkin_researcher();
+            checkin_experiment();
+            return ERROR;
+        }
+
+        // Check participant record fields, unless we have a dummy pp while
+	// in preparing mode.
+	if (expdb.experiment.status != EXP_STATUS_PREPARING || ppid != "dummy")
+	{
+            err = check_participant_fields();
+            if (err)
+            {
+        	checkin_participant();
+        	checkin_researcher();
+        	checkin_experiment();
+        	ctrl_window.show_error("Invalid or unset value in participant "
+                    "record.");
+        	return ERROR;
+            }
+	}
+
+
+        // Determine participant group.
+        if (have_option("grp"))
+            err = select_group_specified();
+        else
+            err = assign_participant_to_group();
+        if (err)
+        {
+            checkin_participant();
+            checkin_researcher();
+            checkin_experiment();
+            return ERROR;
+        }
+
+
+        return OK;
+    }
+
+
+    int checkout_session_part2()
+    {
+        // Checkout group record.
+        int err = expdb.experiment.checkout_group(string(selected_group),
+            !GROUP_RECORD_UPDATEABLE);
+        if (err)
+        {
+            checkin_participant();
+            checkin_researcher();
+            checkin_experiment();
+            return ERROR;
+        }
+        if (SHOW_ASSIGNED_GROUP)
+            layout.info1.group.text = string(selected_group);
+        else
+            layout.info1.group.text = "<i>(hidden)</i>", true;
+
+
+        // Perform pre-session setup.
+        err = setup_pre_session();
+        if (err)
+        {
+            expdb.experiment.checkin_group();
+            checkin_participant();
+            checkin_researcher();
+            checkin_experiment();
+            return ERROR;
+        }
+
+
+        // Create new experiment session record.
+        err = expdb.experiment.checkout_new_session(EXPERIMENT_VERSION);
+        if (err)
+        {
+            expdb.experiment.checkin_group();
+            checkin_participant();
+            checkin_researcher();
+            checkin_experiment();
+            return ERROR;
+        }
+
+
+        // Perform session setup.
+        err = setup_session();
+        if (err)
+        {
+            int sesid = expdb.experiment.session.id;
+            expdb.experiment.checkin_session(SESSION_STATUS_FAILED);
+            expdb.experiment.checkin_group();
+            checkin_participant();
+            checkin_researcher();
+            expdb.experiment.remove_session(sesid); // Remove session.
+            checkin_experiment();
+            return ERROR;
+        }
+        else
+            layout.info1.session.text = string(expdb.experiment.session.id);
+
+        return OK;
+    }
+
+
+    int checkout_session()
+    {
+        int err = checkout_session_part1();
+        if (!err) err = checkout_session_part2();
+
+        return err;
+    }
+
+
+    int checkin_session(SessionStatus status)
+    {
+        // Check in experiment session, group, participant, researcher and
+        // experiment records.
+        int err = OK;
+        if (expdb.experiment.checkin_session(status) != OK) err = ERROR;
+        if (expdb.experiment.checkin_group() != OK) err = ERROR;
+        if (expdb.checkin_participant() != OK) err = ERROR;
+        if (expdb.checkin_researcher() != OK) err = ERROR;
+        if (expdb.checkin_experiment() != OK) err = ERROR;
+
+        return err;
+    }
+
+
+    int confirm_begin_experiment()
+    {
+        if (state != CONTROL_READY) return ERROR;
+
+        int err = master_lock_database();
+        if (err) return ERROR;
+        err = checkout_session_part1();
+        master_unlock_database();
+        if (err) return ERROR;
+
+        state = CONTROL_KICKOFF;
+        exp_kickoff.action(this);
+
+        return OK;
+    }
+
+
+    int cancel_begin_experiment()
+    {
+        if (state != CONTROL_KICKOFF) return ERROR;
+
+        int err = master_lock_database();
+        if (err)
+        {
+            state = CONTROL_READY;
+            return ERROR;
+        }
+        checkin_participant();
+        checkin_researcher();
+        checkin_experiment();
+        master_unlock_database();
+
+        state = CONTROL_READY;
+
+        return OK;
+    }
+
+
+    int really_begin_experiment()
+    {
+        if (state != CONTROL_KICKOFF) return ERROR;
+
+        int err = master_lock_database();
+        if (err)
+        {
+            state = CONTROL_READY;
+            return ERROR;
+        }
+        err = checkout_session_part2();
+        master_unlock_database(false);
+        if (err)
+        {
+            state = CONTROL_READY;
+            return ERROR;
+        }
+
+        state = CONTROL_RUNNING;
+
+        layout.buttons.participant.is_sensitive = false;
+        layout.buttons.researcher.is_sensitive = false;
+        layout.buttons.experiment.is_sensitive = false;
+        layout.buttons.startexp.is_sensitive = false;
+
+        experiment.enter();
+
+        return OK;
+    }
+
+
+    int begin_experiment()
+    {
+        if (state != CONTROL_READY) return ERROR;
+
+        int err = master_lock_database();
+        if (err) return ERROR;
+        err = checkout_session();
+        master_unlock_database();
+        if (err) return ERROR;
+
+        state = CONTROL_RUNNING;
+
+        layout.buttons.participant.is_sensitive = false;
+        layout.buttons.researcher.is_sensitive = false;
+        layout.buttons.experiment.is_sensitive = false;
+        layout.buttons.startexp.is_sensitive = false;
+
+        experiment.enter();
+
+        return OK;
+    }
+
+
+    void end_experiment(bool abort=false)
+    {
+        if (abort && state == CONTROL_RUNNING)
+            state = CONTROL_ABORTED;
+
+        if (state == CONTROL_RUNNING ||
+            state == CONTROL_ABORTED)
+        {
+            int err = master_lock_database();
+            if (err) return;
+
+            if (state == CONTROL_RUNNING)
+                err = checkin_session(SESSION_STATUS_FINISHED);
+            else
+                err = checkin_session(SESSION_STATUS_ABORTED);
+            master_unlock_database();
+            if (err) return;
+
+            // Close the database.
+            expdb.close();
+
+            state = CONTROL_FINISHED;
+        }
+    }
+
+
+    int stop_experiment()
+    {
+        if (state != CONTROL_RUNNING) return ERROR;
+
+        signal(experiment, SYS_STOP);
+
+        return OK;
+    }
+
+
+    int quit_experiment()
+    {
+        if (state != CONTROL_IDLE &&
+            state != CONTROL_READY &&
+            state != CONTROL_RUNNING &&
+            state != CONTROL_ABORTED &&
+            state != CONTROL_FINISHED) return ERROR;
+
+        if (state == CONTROL_RUNNING)
+            state = CONTROL_ABORTED;
+
+        if (state >= CONTROL_RUNNING)
+            experiment.leave();
+
+        return OK;
+    }
+
+
+    void mark_experiment_aborted()
+    {
+        if (state == CONTROL_RUNNING)
+            state = CONTROL_ABORTED;
+    }
+
+
+    int begin()
+    {
+        if (state == CONTROL_READY) return OK;
+        if (state != CONTROL_IDLE) return ERROR;
+
+//        apply_experiment_settings();
+
+        string dbid = DATABASE_NUMBER;
+        if (dbid == "")
+        {
+            dbid = host_name();
+            if (dbid == "") dbid = "99";    // Just in case.
+        }
+        if (have_option("db") || have_option("dbid"))
+        {
+            dbid = parse_option_database_id();
+            if (dbid == "") return ERROR;   // User specified empty string.
+        }
+
+        // Open the database. Will stay open until script termination or
+        // end_experiment().
+        if (expdb.open(script_dir() + DATABASE_DIR, dbid) != OK)
+            return ERROR;
+
+        // Create experiment if not yet done.
+        int err = create_experiment();
+        if (err) return ERROR;
+
+        // Get experiment status information.
+        err = get_experiment_info();
+        if (err) return ERROR;
+
+        if (have_option("res"))
+        {
+            string id = parse_option_researcher_id();
+            get_researcher_info(id);
+        }
+
+        if (have_option("pp"))
+        {
+            string id = parse_option_participant_id();
+            get_participant_info(id);
+        }
+
+        experiment.target = this;
+
+        clear_state_info();
+        clear_status();
+
+        // Setup control window and test windows.
+        setup_windows();
+
+        state = CONTROL_READY;
+
+        return OK;
+    }
+
+
+    void end()
+    {
+        // Checkin experiment session if applicable.
+        end_experiment();
+    }
+
+
+    //==========================================================================
+
+
+    void set_status(string txt)
+    {
+        layout.status.text = txt;
+    }
+
+
+    void clear_status()
+    {
+        layout.status.text = "";
+    }
+
+
+    //--------------------------------------------------------------------------
+
+
+    void show_lights_outline(bool b=true)
+    {
+        if (showoutlines == b) return;
+
+        showoutlines = b;
+        if (!showoutlines)
+        {
+            layout.canvas.front_light_icon.is_visible =
+                (lightsmask & FRONT_SIDE) ? true : false;
+            layout.canvas.left_light_icon.is_visible =
+                (lightsmask & LEFT_SIDE) ? true : false;
+            layout.canvas.right_light_icon.is_visible =
+                (lightsmask & RIGHT_SIDE) ? true : false;
+        }
+        else
+        {
+            layout.canvas.front_light_icon.is_visible = true;
+            layout.canvas.left_light_icon.is_visible = true;
+            layout.canvas.right_light_icon.is_visible = true;
+        }
+    }
+
+
+    void show_light_icon(int mask)
+    {
+        lightsmask |= mask;
+        if (!showoutlines)
+        {
+            if (mask & FRONT_SIDE)
+                layout.canvas.front_light_icon.is_visible = true;
+            if (mask & LEFT_SIDE)
+                layout.canvas.left_light_icon.is_visible = true;
+            if (mask & RIGHT_SIDE)
+                layout.canvas.right_light_icon.is_visible = true;
+        }
+
+        if (mask & FRONT_SIDE)
+            layout.canvas.front_light_icon.fill_pattern_color =
+                CONTROL_FRONT_LIGHT_COLOR;
+        if (mask & LEFT_SIDE)
+            layout.canvas.left_light_icon.fill_pattern_color =
+                CONTROL_SIDE_LIGHT_COLOR;
+        if (mask & RIGHT_SIDE)
+            layout.canvas.right_light_icon.fill_pattern_color =
+                CONTROL_SIDE_LIGHT_COLOR;
+    }
+
+
+    void hide_light_icon(int mask)
+    {
+        lightsmask &= ~mask;
+        if (!showoutlines)
+        {
+            if (mask & FRONT_SIDE)
+                layout.canvas.front_light_icon.is_visible = false;
+            if (mask & LEFT_SIDE)
+                layout.canvas.left_light_icon.is_visible = false;
+            if (mask & RIGHT_SIDE)
+                layout.canvas.right_light_icon.is_visible = false;
+        }
+
+        if (mask & FRONT_SIDE)
+            layout.canvas.front_light_icon.fill_pattern_color = color:none;
+        if (mask & LEFT_SIDE)
+            layout.canvas.left_light_icon.fill_pattern_color = color:none;
+        if (mask & RIGHT_SIDE)
+            layout.canvas.right_light_icon.fill_pattern_color = color:none;
+    }
+
+
+    void show_speaker_icon(int mask)
+    {
+        if (mask & FRONT_SIDE)
+            layout.canvas.front_speaker_icon.is_visible = true;
+        if (mask & LEFT_SIDE)
+            layout.canvas.left_speaker_icon.is_visible = true;
+        if (mask & RIGHT_SIDE)
+            layout.canvas.right_speaker_icon.is_visible = true;
+    }
+
+
+    void hide_speaker_icon(int mask)
+    {
+        if (mask & FRONT_SIDE)
+            layout.canvas.front_speaker_icon.is_visible = false;
+        if (mask & LEFT_SIDE)
+            layout.canvas.left_speaker_icon.is_visible = false;
+        if (mask & RIGHT_SIDE)
+            layout.canvas.right_speaker_icon.is_visible = false;
+    }
+
+
+    void show_counter_active()
+    {
+        layout.canvas.counter_active.is_visible = true;
+    }
+
+
+    void hide_counter_active()
+    {
+        layout.canvas.counter_active.is_visible = false;
+    }
+
+
+    //--------------------------------------------------------------------------
+
+
+    void begin_clock(bool release=false)
+    {
+        clock.abort();
+        clock.state = CLOCK_READY;
+        clock.released = release;
+        clock.timestamps.size = 0;
+        clock.duration = 0s;
+        clock.total_runtime = 0s;
+        layout.canvas.counter.text = "0";
+        layout.canvas.counter_background.is_visible = true;
+        hide_counter_active();
+    }
+
+
+    dur end_clock(time t)
+    {
+        if (clock.state == CLOCK_RUNNING)
+        {
+            if (clock.released)
+            {
+                clock.timestamps.size = clock.timestamps.size + 1;
+                clock.timestamps[clock.timestamps.size-1] = t;
+
+                clock.abort();
+                clock.duration += t - clock.timeref;
+                clock.total_runtime = t - clock.timestamps[0];
+
+                layout.canvas.counter.text = string(int(clock.duration));
+                hide_counter_active();
+            }
+        }
+        else if (clock.state == CLOCK_PAUSED)
+        {
+            if (clock.released)
+            {
+                clock.timestamps.size = clock.timestamps.size + 1;
+                clock.timestamps[clock.timestamps.size-1] = t;
+                clock.total_runtime = t - clock.timestamps[0];
+            }
+        }
+        clock.state = CLOCK_FINISHED;
+
+        return clock.duration;
+    }
+
+
+    void erase_clock()
+    {
+        clock.abort();
+        clock.state = CLOCK_IDLE;
+        clock.released = false;
+        layout.canvas.counter.text = "";
+        layout.canvas.counter_background.is_visible = false;
+        hide_counter_active();
+    }
+
+
+    void reset_clock()
+    {
+        erase_clock();
+        clock.timestamps.size = 0;
+        clock.duration = 0s;
+        clock.total_runtime = 0s;
+    }
+
+
+    void release_clock(time t)
+    {
+        if (clock.released) return;
+
+        clock.released = true;
+
+        if (clock.state == CLOCK_RUNNING)
+        {
+            clock.timestamps.size = clock.timestamps.size + 1;
+            clock.timestamps[clock.timestamps.size-1] = t;
+
+            clock.timeref = t;
+            clock.start(t + 100ms);
+            show_counter_active();
+        }
+    }
+
+
+    dur start_clock(time t)
+    {
+        if (clock.state == CLOCK_READY || clock.state == CLOCK_PAUSED)
+        {
+            clock.state = CLOCK_RUNNING;
+            if (clock.released)
+            {
+                clock.timestamps.size = clock.timestamps.size + 1;
+                clock.timestamps[clock.timestamps.size-1] = t;
+
+                clock.timeref = t;
+                clock.start(t + 100ms);
+                show_counter_active();
+            }
+        }
+
+        return clock.duration;
+    }
+
+
+    dur stop_clock(time t)
+    {
+        if (clock.state == CLOCK_RUNNING)
+        {
+            clock.state = CLOCK_PAUSED;
+            if (clock.released)
+            {
+                clock.timestamps.size = clock.timestamps.size + 1;
+                clock.timestamps[clock.timestamps.size-1] = t;
+
+                clock.abort();
+                clock.duration += t - clock.timeref;
+                layout.canvas.counter.text = string(int(clock.duration));
+                hide_counter_active();
+            }
+        }
+
+        return clock.duration;
+    }
+
+
+    dur update_clock(time t)
+    {
+        if (clock.state == CLOCK_RUNNING)
+        {
+            if (clock.released)
+            {
+                clock.duration += t - clock.timeref;
+                clock.timeref = t;
+                layout.canvas.counter.text = string(int(clock.duration));
+            }
+        }
+
+        return clock.duration;
+    }
+
+
+    //--------------------------------------------------------------------------
+
+
+    void start_light(int mask)
+    {
+        button_box.start_light(mask);
+        show_light_icon(mask);
+    }
+
+
+    void stop_light(int mask)
+    {
+        button_box.stop_light(mask);
+        hide_light_icon(mask);
+    }
+
+
+    //--------------------------------------------------------------------------
+
+    // Shows the attention grabber cross
+    void start_attention_grabber_cross()
+    {
+        layout.canvas.attention_cross.is_visible = true;
+    }
+
+    // Animate the attention grabber cross.
+    void animate_attention_grabber_cross(time t)
+    {
+        layout.canvas.attention_cross.inc_rotation();
+        att_cross_clock.start(t + 100ms);
+    }
+
+    // Clear the attention grabber cross
+    void clear_attention_grabber_cross()
+    {
+        att_cross_clock.abort();
+        layout.canvas.attention_cross.rotation = 0.0;
+        layout.canvas.attention_cross.is_visible = false;
+    }
+
+    //--------------------------------------------------------------------------
+
+
+    int find_key(int key)
+    {
+        int nitems = keymap.size;
+        int n;
+        while (n < nitems)
+        {
+            if (key == keymap[n].key) return n;
+            n++;
+        }
+
+        return -1;
+    }
+
+
+    void enable_key(char key, int code)
+    {
+        int i = find_key(int(key));
+        if (i < 0)
+        {
+            i = keymap.size;
+            keymap.size = i + 1;
+        }
+        keymap[i].key = int(key);
+        keymap[i].code = code;
+    }
+
+
+    void disable_keys()
+    {
+        keymap.size = 0;
+    }
+
+
+    void set_current_trial(int n)
+    {
+        current_trial = n;
+        show_state_info();
+    }
+}

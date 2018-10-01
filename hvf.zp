@@ -1,0 +1,82 @@
+#!/usr/bin/env zep-1.14
+
+import response_box; // import response_box before std_baby_windows_1
+import std_baby_windows_uil;
+import std_entry_page2;
+import std_exit_page2;
+import std_sound_playback;
+import test::hvf_event;
+import test::task;
+
+
+Experiment experiment
+{
+    on_event:entry()
+    {
+        // Show test windows and open button box.
+        show_test_windows();
+        control.button_box.open("/dev/ttyACM0");
+        // maximize ctrl_window
+        ctrl_window.is_maximized = true;
+    }
+
+    on_event:message()
+    {
+        if (message_sender == control && message_arg == SYS_STOP)
+        {
+            control.mark_experiment_aborted();
+            thankyou.enter();
+        }
+    }
+
+    Part welcome
+    {
+        on_event:entry()
+        {
+            control.button_box.enable_all_buttons(CONTINUE);
+            entry_page.add_image(stimuli_dir() + "images/bal.png");
+            entry_page.action(this);
+        }
+    }
+
+    Part mainexp
+    {
+        on_event:entry()
+        {
+            test::action(this);
+        }
+    }
+
+    //--------------------------------------------------------------------------
+
+    Part thankyou
+    {
+        int     sesid;
+
+        on_event:entry()
+        {
+            sesid = expdb.experiment.session.id;
+
+            control.end_experiment();   // Check-in session.
+
+            // Disable buttons because a experimenter might accidentally
+            // press the thankyou away.
+            control.button_box.disable_buttons();
+
+            exit_page.add_image(stimuli_dir() + "images/giraf.png");
+            exit_page.add_image(stimuli_dir() + "images/bal.png");
+            exit_page.add_image(stimuli_dir() + "images/kikker.png");
+            exit_page.add_image(stimuli_dir() + "images/kip.png");
+            exit_page.add_image(stimuli_dir() + "images/koe.png");
+            exit_page.add_image(stimuli_dir() + "images/konijn.png");
+            exit_page.add_image(stimuli_dir() + "images/pinguin.png");
+            exit_page.add_image(stimuli_dir() + "images/vlinder.png");
+            exit_page.add_image(stimuli_dir() + "images/zebra.png");
+            exit_page.action(this, 60s);
+            sound_playback.playback.set_scaling(0.3);
+            sound_playback.play(stimuli_dir() + "sounds/handjes.wav", 
+                now() + 1000ms);
+        }
+    }
+}
+

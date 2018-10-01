@@ -1,0 +1,167 @@
+
+
+// Single line of output for the familiarization/habituation phase.
+
+enum exp_phase {
+    PHASE_PRE_ATTENTION,
+    PHASE_HAB,
+    PHASE_TEST,
+    PHASE_POST_ATTENTION
+};
+
+
+/**
+ * Describes the output of the phase.
+ */
+record TestOutput
+{
+    exp_phase phase;    // the phase of the experiment
+    int     trialnum;   // 
+//    int     id;         // id's change stimulus after stimulus.
+    int     lt;         // looking time(ms)
+    int     nlt;        // time spend not looking.
+    int     looks;      // number of time a child looks to the stimulus.
+    int     lookaways;  // number of time a child looked away.
+    bool    crit_met;   // is the habituation criterion met.
+}
+
+record StimOutput
+{
+    int     trial;      // the trial
+    int     tstart;     // time start of the stimulus
+    int     tend;       // time end of the stimulus
+    string  stimulus;   // the name of the stimulus
+}
+
+TestOutput[..] pre_output;
+StimOutput[..] pre_stim_output;
+
+TestOutput[..] hab_output;
+StimOutput[..] hab_stim_output;
+
+TestOutput[..] test_output;
+StimOutput[..] test_stim_output;
+
+TestOutput[..] post_output;
+StimOutput[..] post_stim_output;
+
+void pre_stim_output_append(StimOutput output)
+{
+    pre_stim_output.size = pre_stim_output.size + 1;
+    pre_stim_output[pre_stim_output.size-1] = output;
+}
+
+void pre_output_append(TestOutput output)
+{
+    pre_output.size = pre_output.size + 1;
+    pre_output[pre_output.size-1] = output;
+}
+
+void hab_stim_output_append(StimOutput output)
+{
+    hab_stim_output.size = hab_stim_output.size + 1;
+    hab_stim_output[hab_stim_output.size-1] = output;
+}
+
+void hab_output_append(TestOutput output)
+{
+    hab_output.size = hab_output.size + 1;
+    hab_output[hab_output.size-1] = output;
+}
+
+void output_append(TestOutput output)
+{
+    test_output.size = test_output.size + 1;
+    test_output[test_output.size-1] = output;
+}
+
+void stimulus_output_append(StimOutput output)
+{
+    test_stim_output.size = test_stim_output.size + 1;
+    test_stim_output[test_stim_output.size-1] = output;
+}
+
+void post_stim_output_append(StimOutput output)
+{
+    post_stim_output.size = post_stim_output.size + 1;
+    post_stim_output[post_stim_output.size-1] = output;
+}
+
+void post_output_append(TestOutput output)
+{
+    post_output.size = post_output.size + 1;
+    post_output[post_output.size-1] = output;
+}
+
+// all sorts of output savers
+
+// pre test attention
+void save_pre_output()
+{
+    string fn = expdb.experiment.session.create_table("pre_output", 1);
+    pre_output.append(fn, namespace_name + ": pre attention results");
+    pre_output.size = 0;
+
+    fn = expdb.experiment.session.create_table("pre_stim", 2);
+    pre_stim_output.append(fn, ": pre stimulus table");
+    pre_stim_output.size = 0;
+}
+
+// habituation phase (12 subtrials)
+void save_hab_output()
+{
+    string fn = expdb.experiment.session.create_table("hab_output", 1);
+    hab_output.append(fn, namespace_name + ": hab results");
+    hab_output.size = 0;
+
+    fn = expdb.experiment.session.create_table("hab_stim", 2);
+    hab_stim_output.append(fn, ": hab stimulus table");
+    hab_stim_output.size = 0;
+}
+
+//test phase (two subtrials)
+void save_output()
+{
+    string fn = expdb.experiment.session.create_table("test_output", 3);
+    test_output.append(fn, namespace_name + ": test results");
+    test_output.size = 0;
+    
+    fn = expdb.experiment.session.create_table("test_stim", 4);
+    test_stim_output.append(fn, ": stimulus table");
+    test_stim_output.size = 0;
+}
+
+// post test attention
+void save_post_output()
+{
+    string fn = expdb.experiment.session.create_table("post_output", 1);
+    post_output.append(fn, namespace_name + ": post attention results");
+    post_output.size = 0;
+
+    fn = expdb.experiment.session.create_table("post_stim", 2);
+    post_stim_output.append(fn, ": post stimulus table");
+    post_stim_output.size = 0;
+}
+
+// is called from task.zm to check whether the infant has habituated.
+bool habituation_done()
+{
+    if (test_output.size < 6)
+        return false;
+
+    real mean_first3 = (test_output[0].lt +
+                        test_output[1].lt +
+                        test_output[2].lt ) / 3;
+
+    real mean_last3  = (test_output[test_output.size - 3].lt +
+                        test_output[test_output.size - 2].lt +
+                        test_output[test_output.size - 1].lt ) / 3;
+    
+    return mean_first3 * 0.65 > mean_last3;
+}
+
+void stim_output_append(StimOutput output)
+{
+    test_stim_output.size = test_stim_output.size + 1;
+    test_stim_output[test_stim_output.size - 1] = output;
+}

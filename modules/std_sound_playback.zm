@@ -1,0 +1,133 @@
+/******************************************************************************\
+FILE:           std_sound_playback.zm
+AUTHOR:         Theo Veenker <theo.veenker@beexy.nl>
+ADAPTED BY:     -
+
+DESCRIPTION:
+
+Provides sound chains for playing sound files through sound_output_device.
+
+
+HISTORY:
+2011-06-10 TV   Created as part of the standard Zep modules.
+
+\******************************************************************************/
+
+import std_sound_output_device;
+
+
+SoundChain sound_playback
+{
+    int         nrepeat;        // if != 0, number of times to repeat sound
+    dur         pausedur;       // pause between to repeated sounds
+
+
+    // Sound source/producer object.
+    SoundFile clip {}
+
+
+    // Sound sink/consumer object.
+    SoundPlayback playback {}
+
+
+    on_event:finish()
+    {
+        if (nrepeat > 0) nrepeat--;
+
+        if (nrepeat)
+            start(finish_time + pausedur);
+        else
+        {
+            signal_target(CONTINUE);
+            target = null;
+        }
+    }
+
+
+    void play(string fn, time tstart, Object caller=null)
+    {
+        abort();
+        nrepeat = 0;
+        pausedur = 0s;
+        playback.device = sound_output_device;
+        clip.file = fn;
+        start(tstart);
+
+        if (caller != null) target = caller;
+    }
+
+
+    void play(string fn, time tstart, dur pause, Object caller=null)
+    {
+        abort();
+        nrepeat = (pause > 0s) ? -1 : 0;
+        pausedur = pause;
+        playback.device = sound_output_device;
+        clip.file = fn;
+        start(tstart);
+
+        if (caller != null) target = caller;
+    }
+
+
+    void play(string fn, time tstart, dur pause, int nplay, Object caller=null)
+    {
+        abort();
+        nrepeat = nplay;
+        pausedur = pause;
+        playback.device = sound_output_device;
+        clip.file(fn);
+        start(tstart);
+
+        if (caller != null) target = caller;
+    }
+}
+
+
+SoundChain sound_playback2
+{
+    int         nrepeat;        // if != 0, number of times to repeat sound
+    dur         pausedur;       // pause between to repeated sounds
+
+
+    // Sound source/producer object.
+    SoundSequence source
+    {
+        SoundFile clip1 {}
+        SoundFile clip2 {}
+    }
+
+
+    // Sound sink/consumer object.
+    SoundPlayback playback {}
+
+
+    on_event:finish()
+    {
+        if (nrepeat > 0) nrepeat--;
+
+        if (nrepeat)
+            start(finish_time + pausedur);
+        else
+        {
+            signal_target(CONTINUE);
+            target = null;
+        }
+    }
+
+
+    void play(string fn1, string fn2, time tstart, dur pause, int nplay=1,
+        Object caller=null)
+    {
+        abort();
+        nrepeat = nplay;
+        pausedur = pause;
+        playback.device = sound_output_device;
+        source.clip1.file = fn1;
+        source.clip2.file = fn2;
+        source.clip2.leader_duration = pause;
+        start(tstart);
+
+        if (caller != null) target = caller;
+    }
+}

@@ -1,0 +1,18 @@
+// Defines bitfields for sound direction
+enum SoundDirection {
+    SND_DIRECTION_LEFT  = 1 << 0,
+    SND_DIRECTION_RIGHT = 1 << 1,
+    SND_DIRECTION_FRONT = 1 << 2
+};
+
+/*
+ * Defines sound channels These are setup to match settings in the UiL OTS
+ * lab. Currently there is only one front speaker and it is at channel
+ * FRONT_LEFT, thus sending sound to CHANNEL_FRONT_RIGHT has no effect.
+ */
+enum SoundChannel {
+    CHANNEL_FRONT_LEFT  = 0,
+    CHANNEL_FRONT_RIGHT = 1,
+    CHANNEL_REAR_LEFT   = 2,
+    CHANNEL_REAR_RIGHT  = 3
+};

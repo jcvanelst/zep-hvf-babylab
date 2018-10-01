@@ -1,0 +1,1073 @@
+
+//ori mja
+// enum ItemType
+// {
+//     FAMILIARISATION,    // Stimulus from fam phase
+//     HABITUATION,        // Stimulus from habituation phase
+//     NOVEL,              // Stimulus from test phase
+//     ATTENTION           // Stimulus to check the infants 
+// }
+
+//new plan
+enum ItemType
+{
+    PRE_ATTENTION,          // Stimulus from pre or post attention
+    HABITUATION,        // Stimulus from habituation phase
+    TEST,              // Stimulus from test phase/
+    POST_ATTENTION
+}
+
+// record TestItem
+// {
+//     int         id;         // The id of the trial.
+//     ItemType    type;       // What type of stimulus is presented.
+//     string      snd_fn;     // Which stimulus is presented.
+// }
+
+record PreItem {
+    int             id; 
+    ItemType        type;
+}
+
+record PostItem {
+    int             id; 
+    ItemType        type;
+}
+
+record TestItem {
+
+    int id;
+
+    //string image_filename;
+    ItemType   type;                 
+    string     sound1_filename;
+    string     sound2_filename;
+}
+
+record HabItem {
+
+    int id;
+    ItemType type;
+    string sound1_filename;
+    string sound2_filename;
+    string sound3_filename;
+    string sound4_filename;
+    string sound5_filename;
+            
+    string sound6_filename;
+    string sound7_filename;
+    string sound8_filename;
+    string sound9_filename;
+    string sound10_filename;
+    string sound11_filename;
+    string sound12_filename; 
+}
+
+record FaceItem {
+
+    int id;
+    string face_filename;
+}
+
+// arrays for pre
+PreItem[..]             pre_items; 
+
+// arrays for hab and test
+HabItem[..]             hab_items;
+TestItem[..]            test_items;
+
+PostItem[..]            post_items;//could be duplicate oof pre?
+
+// array for test faces 
+FaceItem[..]            test_face_items; 
+
+
+// array for hab faces 
+FaceItem[..]            hab_face_items; 
+
+
+//TestItem[..] fam_items = {};
+
+// void prepare_fam_unimodal ()
+// {
+//     fam_items.size = unimodal.size;
+//     int i = 0;
+
+//     while(i < fam_items.size) {
+//         TestItem item;
+//         item.id      = i + 1;
+//         item.type    = FAMILIARISATION;
+//         item.snd_fn  = unimodal[i] + "_48000.wav";
+        
+//         fam_items[i] = item;
+//         i++;
+//     }
+// }
+
+// void prepare_fam_bimodal ()
+// {
+//     fam_items.size = bimodal.size;
+//     int i = 0;
+
+//     while(i < fam_items.size) {
+//         TestItem item;
+
+//         item.id      = i + 1;
+//         item.type    = FAMILIARISATION;
+//         item.snd_fn  = bimodal[i] + "_48000.wav";
+
+//         fam_items[i] = item;
+//         i++;
+//     }
+// }
+
+string[..] grid_images = {
+    "stimuli/images/appel-small.png",
+    "stimuli/images/auto-small.png",
+    "stimuli/images/ballon-small.png",
+    "stimuli/images/bal-small.png",
+    "stimuli/images/banaan-small.png",
+    "stimuli/images/beer-small.png",
+    "stimuli/images/boom-small.png",
+    "stimuli/images/dolfijn-small.png",
+    "stimuli/images/fiets-small.png",
+    "stimuli/images/gieter-small.png",
+    "stimuli/images/giraf-small.png",
+    "stimuli/images/kado-small.png",
+    "stimuli/images/kasteel-small.png",
+    "stimuli/images/kikker-small.png",
+    "stimuli/images/kip-small.png",
+    "stimuli/images/koe-small.png",
+    "stimuli/images/konijn-small.png",
+    "stimuli/images/kuiken-small.png",
+    "stimuli/images/pinguin-small.png",
+    "stimuli/images/schoen-small.png",
+    "stimuli/images/stoel-small.png",
+    "stimuli/images/vliegtuig-small.png",
+    "stimuli/images/vlinder-small.png",
+    "stimuli/images/vork-small.png",
+    "stimuli/images/zebra-small.png"
+};
+
+//hvf version ims
+// string[..] attention_images = {
+//     "appel.png",
+//     "auto.png",
+//     "ballon.png",
+//     "bal.png",
+//     "banaan.png",
+//     "beer.png",
+//     "boom.png",
+//     "dolfijn.png",
+//     "fiets.png",
+//     "gieter.png",
+//     "giraf.png",
+//     "kado.png",
+//     "kasteel.png",
+//     "kikker.png",
+//     "kip.png",
+//     "koe.png",
+//     "konijn.png",
+//     "kuiken.png",
+//     "pinguin.png",
+//     "schoen.png",
+//     "stoel.png",
+//     "vliegtuig.png",
+//     "vlinder.png",
+//     "vork.png",
+//     "zebra.png"
+// };
+
+
+string[..] video_frames = {
+    "stimuli/movies/frame000.png",
+    "stimuli/movies/frame001.png",
+    "stimuli/movies/frame002.png",
+    "stimuli/movies/frame003.png",
+    "stimuli/movies/frame004.png",
+    "stimuli/movies/frame005.png",
+    "stimuli/movies/frame006.png",
+    "stimuli/movies/frame007.png",
+    "stimuli/movies/frame008.png",
+    "stimuli/movies/frame009.png",
+    "stimuli/movies/frame010.png",
+    "stimuli/movies/frame011.png",
+    "stimuli/movies/frame012.png",
+    "stimuli/movies/frame013.png",
+    "stimuli/movies/frame014.png",
+    "stimuli/movies/frame015.png",
+    "stimuli/movies/frame016.png",
+    "stimuli/movies/frame017.png",
+    "stimuli/movies/frame018.png",
+    "stimuli/movies/frame019.png",
+    "stimuli/movies/frame020.png",
+};
+
+int movie_frame_index   = 0;
+int movie_frame_inc     = 1;
+
+// in the hvf, we had two movies
+
+
+string[..] movie1_frames =
+{
+    "movie1/frame000.png",
+    "movie1/frame001.png",
+    "movie1/frame002.png",
+    "movie1/frame003.png",
+    "movie1/frame004.png",
+    "movie1/frame005.png",
+    "movie1/frame006.png",
+    "movie1/frame007.png",
+    "movie1/frame008.png",
+    "movie1/frame009.png",
+    "movie1/frame010.png",
+    "movie1/frame011.png",
+    "movie1/frame012.png",
+    "movie1/frame013.png",
+    "movie1/frame014.png",
+    "movie1/frame015.png",
+    "movie1/frame016.png",
+    "movie1/frame017.png",
+    "movie1/frame018.png",
+    "movie1/frame019.png",
+    "movie1/frame020.png"
+};
+
+string[..] movie2_frames =
+{
+    "movie2/frame000.png",
+    "movie2/frame001.png",
+    "movie2/frame002.png",
+    "movie2/frame003.png",
+    "movie2/frame004.png",
+    "movie2/frame005.png",
+    "movie2/frame006.png",
+    "movie2/frame007.png",
+    "movie2/frame008.png",
+    "movie2/frame009.png",
+    "movie2/frame010.png",
+    "movie2/frame011.png",
+    "movie2/frame012.png",
+    "movie2/frame013.png",
+    "movie2/frame014.png",
+    "movie2/frame015.png",
+    "movie2/frame016.png",
+    "movie2/frame017.png",
+    "movie2/frame018.png",
+    "movie2/frame019.png",
+    "movie2/frame020.png",
+    "movie2/frame021.png",
+    "movie2/frame022.png",
+    "movie2/frame023.png",
+    "movie2/frame024.png",
+};
+/**
+ * capture next frame of video in such a way that the first frame is 0 and
+ * then it moves towards video_frames.size. Once it is in the end position
+ * the direction is reversed.
+ */
+//original MJA
+// string next_movie_stim()
+// {
+//     string ret = video_frames[movie_frame_index];
+//     if (movie_frame_index == video_frames.size - 1 && movie_frame_inc != -1)
+//         movie_frame_inc = -1;
+//     else if(movie_frame_index == 0 && movie_frame_inc != 1)
+//         movie_frame_inc = 1;
+//     movie_frame_index += movie_frame_inc;
+//     return ret;
+// }
+
+//hvf simple copies
+string next_movie1_stim()
+{
+    string ret = movie1_frames[movie_frame_index];
+    if (movie_frame_index == movie1_frames.size - 1 && movie_frame_inc != -1)
+        movie_frame_inc = -1;
+    else if(movie_frame_index == 0 && movie_frame_inc != 1)
+        movie_frame_inc = 1;
+    movie_frame_index += movie_frame_inc;
+    return ret;
+}
+
+//hvf simple copies
+string next_movie2_stim()
+{
+    string ret = movie2_frames[movie_frame_index];
+    if (movie_frame_index == movie2_frames.size - 1 && movie_frame_inc != -1)
+        movie2_frame_inc = -1;
+    else if(movie_frame_index == 0 && movie_frame_inc != 1)
+        movie_frame_inc = 1;
+    movie_frame_index += movie_frame_inc;
+    return ret;
+}
+
+void reset_movie_stims()
+{
+    movie_frame_index = 0;
+    movie_frame_inc   = 1;
+}
+
+//************** LOADING AND CHECKING STIMULI *******************************//
+
+
+/**
+ * Use randomize_list
+ */
+// void prepare_fam_items()
+// {
+//     if      (selected_group == D_L1) {
+//         prepare_fam_bimodal();
+//     }
+//     else if (selected_group == D_L2) {
+//         prepare_fam_unimodal();
+//     }
+//     else if (selected_group == C_L1) {
+//         prepare_fam_unimodal();
+//     }
+//     else { // selected_group == C_L2) 
+//         prepare_fam_bimodal();
+//     }
+//     fam_items.shuffle(0, -1);
+// }
+
+int load_stimuli()
+{
+    int status = OK;
+    if( read_hab_csv(hab_items, hab_csv_file_name()) != OK) {
+        status = ERROR;
+        return status;
+    }
+    if( check_hab_files(hab_items, hab_csv_file_name()) != OK) {
+         status = ERROR;
+         return status;
+    }
+    if( read_csv(test_items, test_csv_file_name()) != OK) {
+        status = ERROR;
+        return status;
+    }
+    if( check_files(test_items, test_csv_file_name()) != OK) {
+        status = ERROR;
+        return status;
+    }
+    if( read_csv_hab_face(hab_face_items, hab_face_csv_file_name() ) != OK) {
+        status = ERROR;
+        return status;
+    }
+    if( read_csv_test_face(test_face_items, test_face_csv_file_name() ) != OK) {
+        status = ERROR;
+        return status;
+    }
+    if( check_hab_face_files(hab_face_items, hab_face_csv_file_name() ) != OK) {
+        status = ERROR;
+        return status;
+    }
+    if( check_test_face_files(test_face_items, 
+            test_face_csv_file_name() ) != OK) {
+        status = ERROR;
+        return status;
+    }
+    return status;
+}
+
+
+// loads in csv into the specified target
+int read_csv(TestItem[] target, string source)
+{
+    int err = target.load(stimuli_dir() + source,
+    true,           // if true, file contains a header row
+    1);             // number of lines to skip before header and data
+    if (err) {
+        println("Trouble loading from " + source);
+        return err;         
+    }
+
+    return OK;
+     // Load data into test_items table.
+}
+
+int read_hab_csv(HabItem[] target, string source)
+{
+    int err = target.load(stimuli_dir() + source,
+    true,           // if true, file contains a header row
+    1);             // number of lines to skip before header and data
+    if (err) {
+        println("Trouble loading from " + source);
+        return err;         
+    }
+
+    return OK;
+     // Load data into hab_items table.
+}
+
+
+// loads in csv into the specified target
+int read_csv_hab_face(FaceItem[] target, string source)
+{
+    int err = target.load(stimuli_dir() + source,
+    true,           // if true, file contains a header row
+    1);             // number of lines to skip before header and data
+    if (err) {
+        println("Trouble loading from " + source);
+        return err;         
+    }
+
+    return OK;
+     // Load data into test_items table.
+}
+
+// loads in csv into the specified target
+int read_csv_test_face(FaceItem[] target, string source)
+{
+    int err = target.load(stimuli_dir() + source,
+    true,           // if true, file contains a header row
+    1);             // number of lines to skip before header and data
+    if (err) {
+        println("Trouble loading from " + source);
+        return err;         
+    }
+
+    return OK;
+     // Load data into test_items table.
+}
+
+
+// Provides the csv file name based on participant data.
+string test_csv_file_name()
+{
+    string vari;
+    string groupid;
+    
+    string nativeness = 
+         expdb.participant.get_enum_field("contrast_native_nonnative");
+         
+       if (nativeness == "nonnative") 
+    {
+        vari = "B";   
+    }
+         
+    else if (nativeness == "native") 
+    {
+        vari = "A";
+    }
+         
+    else
+    {
+    println("ERROR"); 
+    }
+
+    string group_choice = 
+        expdb.participant.get_enum_field("group_one_two");
+        
+    if (group_choice == "one")
+    {
+        groupid = "1";
+    }
+        
+    else if (group_choice == "two")
+    {
+        groupid = "2";  
+    }
+    else 
+    {
+        println("ERROR");
+    }
+        
+    string name =
+        "test_" + 
+        expdb.participant.get_enum_field("contrast_native_nonnative") + 
+        "_" + 
+        expdb.participant.get_enum_field("first_alternation_alt_nalt") + 
+        "_" + 
+        vari + 
+        groupid  + 
+        ".csv";
+
+    return name;
+}
+
+// Provides the csv file name based on participant data.
+string hab_csv_file_name()
+{
+    string vari;
+    string groupid;
+    string speakerstatus;
+    
+    string nativeness = 
+         expdb.participant.get_enum_field("contrast_native_nonnative");
+         
+    if (nativeness == "nonnative") 
+    {
+        vari = "B";   
+    }
+         
+    else if (nativeness == "native") 
+    {
+        vari = "A";
+    }
+         
+    else
+    {
+    println("ERROR"); 
+    }
+
+    string group_choice = 
+        expdb.participant.get_enum_field("group_one_two");
+        
+    if (group_choice == "one")
+    {
+        groupid = "1";
+    }
+        
+    else if (group_choice == "two")
+    {
+        groupid = "2";  
+    }
+    else 
+    {
+        println("ERROR");
+    }
+
+    // get single or multi speaker option
+    string speakervariant = 
+         expdb.participant.get_enum_field("speaker_multiple_single");
+
+    if (speakervariant == "multiple")
+    {
+        speakerstatus = "mspeaker";
+    }
+
+    else if (speakervariant == "single")
+    {
+        speakerstatus = "sspeaker";  
+    }
+    else 
+    {
+        println("ERROR");
+    }        
+    string name =
+            "hab_" +
+            expdb.participant.get_enum_field("contrast_native_nonnative") + 
+            "_" + 
+            vari + 
+            groupid + 
+            "_"  +
+            speakerstatus +
+            ".csv";
+
+    return name;
+}
+
+
+// Provides the csv file name based on participant data.
+string test_face_csv_file_name()
+{
+    string name = "faces-test.csv";
+    return name;
+}
+
+// Provides the csv file name based on participant data.
+string hab_face_csv_file_name()
+{
+    string name = "faces-hab.csv";
+    return name;
+}
+
+// checks files if in TestItem are okay
+int check_files(TestItem[] target, string filename)
+{
+    println("Checking existance of stimuli files for " + filename);
+
+    int status = OK;
+
+    int index = 0;
+    while(index < target.size)
+    {
+        string sound1_path = stimuli_dir() + "sounds/" + 
+            target[index].sound1_filename;
+        if( !file_okay(sound1_path)) status = ERROR;
+
+        string sound2_path = stimuli_dir() + "sounds/" + 
+            target[index].sound2_filename;
+        if( !file_okay(sound1_path)) status = ERROR;
+        
+        index++;
+    }
+
+    return status;
+}
+
+// checks files if in TestItem are okay
+int check_hab_files(HabItem[] target, string filename)
+{
+    println("Checking existance of stimuli files for " + filename);
+
+    int status = OK;
+
+    int index = 0;
+    while(index < target.size)
+    {
+        string sound1_path = stimuli_dir() + "sounds/" + 
+            target[index].sound1_filename;
+        if( !file_okay(sound1_path)) status = ERROR;
+
+        string sound2_path = stimuli_dir() + "sounds/" + 
+            target[index].sound2_filename;
+        if( !file_okay(sound2_path)) status = ERROR;
+        
+        string sound3_path = stimuli_dir() + "sounds/" + 
+            target[index].sound3_filename;
+        if( !file_okay(sound3_path)) status = ERROR;
+
+        string sound4_path = stimuli_dir() + "sounds/" + 
+            target[index].sound4_filename;
+        if( !file_okay(sound4_path)) status = ERROR;
+
+        string sound5_path = stimuli_dir() + "sounds/" + 
+            target[index].sound5_filename;
+        if( !file_okay(sound5_path)) status = ERROR;
+
+        string sound6_path = stimuli_dir() + "sounds/" + 
+            target[index].sound6_filename;
+        if( !file_okay(sound6_path)) status = ERROR;
+        
+        string sound7_path = stimuli_dir() + "sounds/" + 
+            target[index].sound7_filename;
+        if( !file_okay(sound7_path)) status = ERROR;
+
+        string sound8_path = stimuli_dir() + "sounds/" + 
+            target[index].sound8_filename;
+        if( !file_okay(sound8_path)) status = ERROR;
+
+        string sound9_path = stimuli_dir() + "sounds/" + 
+            target[index].sound9_filename;
+        if( !file_okay(sound9_path)) status = ERROR;
+
+        string sound10_path = stimuli_dir() + "sounds/" + 
+            target[index].sound10_filename;
+        if( !file_okay(sound6_path)) status = ERROR;
+        
+        string sound11_path = stimuli_dir() + "sounds/" + 
+            target[index].sound11_filename;
+        if( !file_okay(sound7_path)) status = ERROR;
+
+        string sound12_path = stimuli_dir() + "sounds/" + 
+            target[index].sound12_filename;
+        if( !file_okay(sound12_path)) status = ERROR;
+
+        index++;
+    }
+
+    return status;
+}
+
+// checks files if in FaceItem are okay
+int check_hab_face_files(FaceItem[] target, string filename)
+{
+    println("Checking existance of stimuli files for " + filename);
+
+    int status = OK;
+
+    int index = 0;
+    while(index < target.size)
+    {
+        string image_path = stimuli_dir() + "images/" + 
+            target[index].face_filename;
+        if( !file_okay(image_path)) status = ERROR;
+
+        
+        index++;
+    }
+
+    return status;
+}
+
+
+// checks files if in FaceItem are okay
+int check_test_face_files(FaceItem[] target, string filename)
+{
+    println("Checking existance of stimuli files for " + filename);
+
+    int status = OK;
+
+    int index = 0;
+    while(index < target.size)
+    {
+        string image_path = stimuli_dir() + "images/" + 
+            target[index].face_filename;
+        if( !file_okay(image_path)) status = ERROR;
+
+        
+        index++;
+    }
+
+    return status;
+}
+
+// but hey, we've only got 8 unique faces, while trials happen in 12s
+
+// Checks if a file is both existent and readable
+bool file_okay(string filepath)
+{
+    bool okay = file_exists(filepath) && file_readable(filepath);
+    if(!okay)
+        println("Problems with " + filepath);
+
+
+    return okay;
+}
+
+
+// /****** items for the habituation phase ******/
+
+// TestItem[] hab_items;
+
+// TestItem[..] hab_items_3 =
+// {
+//     {1, HABITUATION, "ae-E continua/ae_3_01_48000"},
+//     {2, HABITUATION, "ae-E continua/ae_3_02_48000"},
+//     {3, HABITUATION, "ae-E continua/ae_3_03_48000"},
+//     {4, HABITUATION, "ae-E continua/ae_3_04_48000"},
+// };
+
+// TestItem[..] hab_items_6 =
+// {
+//     {1, HABITUATION, "ae-E continua/ae_6_01_48000"},
+//     {2, HABITUATION, "ae-E continua/ae_6_02_48000"},
+//     {3, HABITUATION, "ae-E continua/ae_6_03_48000"},
+//     {4, HABITUATION, "ae-E continua/ae_6_04_48000"},
+// };
+
+// /****** items for the test items ******/
+
+// TestItem[] test_items;
+
+// TestItem[..] test_items_3 =
+// {
+//     {1, NOVEL, "ae-E continua/ae_3_01_48000"},
+//     {2, NOVEL, "ae-E continua/ae_3_02_48000"},
+//     {3, NOVEL, "ae-E continua/ae_3_03_48000"},
+//     {4, NOVEL, "ae-E continua/ae_3_04_48000"},
+// };
+
+// TestItem[..] test_items_6 =
+// {
+//     {1, NOVEL, "ae-E continua/ae_6_01_48000"},
+//     {2, NOVEL, "ae-E continua/ae_6_02_48000"},
+//     {3, NOVEL, "ae-E continua/ae_6_03_48000"},
+//     {4, NOVEL, "ae-E continua/ae_6_04_48000"},
+// };
+
+// /**
+//  * In this experiment the stimuli are selected randomly from the test page.
+//  */
+// void shuffle_hab_items()
+// {
+//     hab_items.shuffle(0, hab_items.size);
+// }
+
+
+// void shuffle_test_items()
+// {
+//     test_items.shuffle(0, test_items.size);
+// }
+
+// void prepare_test_items(int ppid)
+// {
+//     bool is_odd = ppid % 2 != 0;
+//     if (is_odd) {
+//         hab_items   = hab_items_6;
+//         test_items  = test_items_3;
+//     }
+//     else {
+//         hab_items   = hab_items_3;
+//         test_items  = test_items_6;
+//     }
+//     shuffle_hab_items();
+//     shuffle_test_items();
+// }
+
+// TestItem[..] attention_items =
+// {
+//     {1, ATTENTION, "bupoki-final"},
+// };
+
+// string[..] unimodal = {
+//     "ae_1_01",
+//     "ae_1_02",
+//     "ae_1_03",
+//     "ae_1_04",
+//     "ae_1_01",
+//     "ae_1_02",
+//     "ae_1_03",
+//     "ae_1_04",
+//     "ae_2_01",
+//     "ae_2_02",
+//     "ae_2_03",
+//     "ae_2_04",
+//     "ae_2_01",
+//     "ae_2_02",
+//     "ae_2_03",
+//     "ae_2_04",
+//     "ae_3_01",
+//     "ae_3_02",
+//     "ae_3_03",
+//     "ae_3_04",
+//     "ae_3_01",
+//     "ae_3_02",
+//     "ae_3_03",
+//     "ae_3_04",
+//     "ae_3_01",
+//     "ae_3_02",
+//     "ae_3_03",
+//     "ae_3_04",
+//     "ae_3_01",
+//     "ae_3_02",
+//     "ae_3_03",
+//     "ae_3_04",
+//     "ae_4_01",
+//     "ae_4_02",
+//     "ae_4_03",
+//     "ae_4_04",
+//     "ae_4_01",
+//     "ae_4_02",
+//     "ae_4_03",
+//     "ae_4_04",
+//     "ae_4_01",
+//     "ae_4_02",
+//     "ae_4_03",
+//     "ae_4_04",
+//     "ae_4_01",
+//     "ae_4_02",
+//     "ae_4_03",
+//     "ae_4_04",
+//     "ae_4_01",
+//     "ae_4_02",
+//     "ae_4_03",
+//     "ae_4_04",
+//     "ae_4_01",
+//     "ae_4_02",
+//     "ae_4_03",
+//     "ae_4_04",
+//     "ae_4_01",
+//     "ae_4_02",
+//     "ae_4_03",
+//     "ae_4_04",
+//     "ae_4_01",
+//     "ae_4_02",
+//     "ae_4_03",
+//     "ae_4_04",
+//     "ae_4_01",
+//     "ae_4_02",
+//     "ae_4_03",
+//     "ae_4_04",
+//     "ae_5_01",
+//     "ae_5_02",
+//     "ae_5_03",
+//     "ae_5_04",
+//     "ae_5_01",
+//     "ae_5_02",
+//     "ae_5_03",
+//     "ae_5_04",
+//     "ae_5_01",
+//     "ae_5_02",
+//     "ae_5_03",
+//     "ae_5_04",
+//     "ae_5_01",
+//     "ae_5_02",
+//     "ae_5_03",
+//     "ae_5_04",
+//     "ae_5_01",
+//     "ae_5_02",
+//     "ae_5_03",
+//     "ae_5_04",
+//     "ae_5_01",
+//     "ae_5_02",
+//     "ae_5_03",
+//     "ae_5_04",
+//     "ae_5_01",
+//     "ae_5_02",
+//     "ae_5_03",
+//     "ae_5_04",
+//     "ae_5_01",
+//     "ae_5_02",
+//     "ae_5_03",
+//     "ae_5_04",
+//     "ae_5_01",
+//     "ae_5_02",
+//     "ae_5_03",
+//     "ae_5_04",
+//     "ae_6_01",
+//     "ae_6_02",
+//     "ae_6_03",
+//     "ae_6_04",
+//     "ae_6_01",
+//     "ae_6_02",
+//     "ae_6_03",
+//     "ae_6_04",
+//     "ae_6_01",
+//     "ae_6_02",
+//     "ae_6_03",
+//     "ae_6_04",
+//     "ae_6_01",
+//     "ae_6_02",
+//     "ae_6_03",
+//     "ae_6_04",
+//     "ae_7_01",
+//     "ae_7_02",
+//     "ae_7_03",
+//     "ae_7_04",
+//     "ae_7_01",
+//     "ae_7_02",
+//     "ae_7_03",
+//     "ae_7_04",
+//     "ae_8_01",
+//     "ae_8_02",
+//     "ae_8_03",
+//     "ae_8_04",
+//     "ae_8_01",
+//     "ae_8_02",
+//     "ae_8_03",
+//     "ae_8_04",
+// };
+
+// string[..] bimodal = {
+//     "ae_1_01",
+//     "ae_1_02",
+//     "ae_1_03",
+//     "ae_1_04",
+//     "ae_1_01",
+//     "ae_1_02",
+//     "ae_1_03",
+//     "ae_1_04",
+//     "ae_2_01",
+//     "ae_2_02",
+//     "ae_2_03",
+//     "ae_2_04",
+//     "ae_2_01",
+//     "ae_2_02",
+//     "ae_2_03",
+//     "ae_2_04",
+//     "ae_2_01",
+//     "ae_2_02",
+//     "ae_2_03",
+//     "ae_2_04",
+//     "ae_2_01",
+//     "ae_2_02",
+//     "ae_2_03",
+//     "ae_2_04",
+//     "ae_2_01",
+//     "ae_2_02",
+//     "ae_2_03",
+//     "ae_2_04",
+//     "ae_2_01",
+//     "ae_2_02",
+//     "ae_2_03",
+//     "ae_2_04",
+//     "ae_2_01",
+//     "ae_2_02",
+//     "ae_2_03",
+//     "ae_2_04",
+//     "ae_2_01",
+//     "ae_2_02",
+//     "ae_2_03",
+//     "ae_2_04",
+//     "ae_2_01",
+//     "ae_2_02",
+//     "ae_2_03",
+//     "ae_2_04",
+//     "ae_3_01",
+//     "ae_3_02",
+//     "ae_3_03",
+//     "ae_3_04",
+//     "ae_3_01",
+//     "ae_3_02",
+//     "ae_3_03",
+//     "ae_3_04",
+//     "ae_3_01",
+//     "ae_3_02",
+//     "ae_3_03",
+//     "ae_3_04",
+//     "ae_3_01",
+//     "ae_3_02",
+//     "ae_3_03",
+//     "ae_3_04",
+//     "ae_4_01",
+//     "ae_4_02",
+//     "ae_4_03",
+//     "ae_4_04",
+//     "ae_4_01",
+//     "ae_4_02",
+//     "ae_4_03",
+//     "ae_4_04",
+//     "ae_5_01",
+//     "ae_5_02",
+//     "ae_5_03",
+//     "ae_5_04",
+//     "ae_5_01",
+//     "ae_5_02",
+//     "ae_5_03",
+//     "ae_5_04",
+//     "ae_6_01",
+//     "ae_6_02",
+//     "ae_6_03",
+//     "ae_6_04",
+//     "ae_6_01",
+//     "ae_6_02",
+//     "ae_6_03",
+//     "ae_6_04",
+//     "ae_6_01",
+//     "ae_6_02",
+//     "ae_6_03",
+//     "ae_6_04",
+//     "ae_6_01",
+//     "ae_6_02",
+//     "ae_6_03",
+//     "ae_6_04",
+//     "ae_7_01",
+//     "ae_7_02",
+//     "ae_7_03",
+//     "ae_7_04",
+//     "ae_7_01",
+//     "ae_7_02",
+//     "ae_7_03",
+//     "ae_7_04",
+//     "ae_7_01",
+//     "ae_7_02",
+//     "ae_7_03",
+//     "ae_7_04",
+//     "ae_7_01",
+//     "ae_7_02",
+//     "ae_7_03",
+//     "ae_7_04",
+//     "ae_7_01",
+//     "ae_7_02",
+//     "ae_7_03",
+//     "ae_7_04",
+//     "ae_7_01",
+//     "ae_7_02",
+//     "ae_7_03",
+//     "ae_7_04",
+//     "ae_7_01",
+//     "ae_7_02",
+//     "ae_7_03",
+//     "ae_7_04",
+//     "ae_7_01",
+//     "ae_7_02",
+//     "ae_7_03",
+//     "ae_7_04",
+//     "ae_7_01",
+//     "ae_7_02",
+//     "ae_7_03",
+//     "ae_7_04",
+//     "ae_8_01",
+//     "ae_8_02",
+//     "ae_8_03",
+//     "ae_8_04",
+//     "ae_8_01",
+//     "ae_8_02",
+//     "ae_8_03",
+//     "ae_8_04",
+// };
+
