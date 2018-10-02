@@ -198,6 +198,7 @@ Block task
                 hab_page.action(
                         this,
                         reference_time,
+                        item_list,
                         habituation.cycle + 1
                         );
                 task.current_trial++;
@@ -236,133 +237,134 @@ Block task
             }
         }
     }
+}
 
-    Block test
-    {
-        TestItem[] item_list;
+    // Block test
+    // {
+    //     TestItem[] item_list;
 
-        on_event:exit()
-        {
-            save_output();
-        }
+    //     on_event:exit()
+    //     {
+    //         save_output();
+    //     }
             
-        on_event:entry()
-        {
-            attention_page.setup();
+    //     on_event:entry()
+    //     {
+    //         attention_page.setup();
 
-            item_list = test_items;
+    //         item_list = test_items;
 
-            if (MAX_TEST_TRIALS <= 0)
-                num_cycles = test_items.size;
-            else
-                num_cycles = MAX_TEST_TRIALS;
-        }
+    //         if (MAX_TEST_TRIALS <= 0)
+    //             num_cycles = test_items.size;
+    //         else
+    //             num_cycles = MAX_TEST_TRIALS;
+    //     }
 
-        Trial grab_attention
-        {
-            on_event:entry()
-            {
-                test_page.setup(item_list);
-                attention_page.setup();
-                attention_page.action(this, reference_time, 0ms);
-            }
-        }
+    //     Trial grab_attention
+    //     {
+    //         on_event:entry()
+    //         {
+    //             test_page.setup(item_list);
+    //             attention_page.setup();
+    //             attention_page.action(this, reference_time, 0ms);
+    //         }
+    //     }
 
-        Trial trial
-        {
+    //     Trial trial
+    //     {
 
-            on_event:entry()
-            {
-                test_page.action(
-                        this,
-                        reference_time,
-                        test.cycle + 1
-                        );
-                task.current_trial++;
-                control.set_current_trial(task.current_trial);
-            }
+    //         on_event:entry()
+    //         {
+    //             test_page.action(
+    //                     this,
+    //                     reference_time,
+    //                     test.cycle + 1
+    //                     );
+    //             task.current_trial++;
+    //             control.set_current_trial(task.current_trial);
+    //         }
             
-            on_event:exit()
-            {
-                TestOutput output;
+    //         on_event:exit()
+    //         {
+    //             TestOutput output;
 
-                output.trialnum = test.cycle + 1;
-                output.lt       = int(test_page.response.cumlt);
-                output.nlt      = int(test_page.response.cumnlt);
-                output.looks    = test_page.response.nlooks;
-                output.lookaways= test_page.response.nlookaways;
-                output.phase    = PHASE_TEST;
-                output.crit_met = hab_crit_met;
+    //             output.trialnum = test.cycle + 1;
+    //             output.lt       = int(test_page.response.cumlt);
+    //             output.nlt      = int(test_page.response.cumnlt);
+    //             output.looks    = test_page.response.nlooks;
+    //             output.lookaways= test_page.response.nlookaways;
+    //             output.phase    = PHASE_TEST;
+    //             output.crit_met = hab_crit_met;
 
-                output_append(output);
+    //             output_append(output);
 
-            }
-        }
-    }
+    //         }
+    //     }
+    // }
    
     // Displays one additional trial to check whether the child has attention
     // in general
-    Block attention
-    {
-        TestItem[] item_list;
+//     Block attention
+//     {
+//         TestItem[] item_list;
 
-        on_event:exit()
-        {
-            save_output();
-        }
+//         on_event:exit()
+//         {
+//             save_output();
+//         }
             
-        on_event:entry()
-        {
-            attention_page.setup();
+//         on_event:entry()
+//         {
+//             attention_page.setup();
 
-            item_list = attention_items;
+//             item_list = attention_items;
 
-            if (MAX_ATTENTION_TRIALS <= 0)
-                num_cycles = item_list.size;
-            else
-                num_cycles = MAX_ATTENTION_TRIALS;
-        }
+//             if (MAX_ATTENTION_TRIALS <= 0)
+//                 num_cycles = item_list.size;
+//             else
+//                 num_cycles = MAX_ATTENTION_TRIALS;
+//         }
 
-        Trial grab_attention
-        {
-            on_event:entry()
-            {
-                test_page.setup(item_list);
-                attention_page.setup();
-                attention_page.action(this, reference_time, 0ms);
-            }
-        }
+//         Trial grab_attention
+//         {
+//             on_event:entry()
+//             {
+//                 test_page.setup(item_list);
+//                 attention_page.setup();
+//                 attention_page.action(this, reference_time, 0ms);
+//             }
+//         }
 
-        Trial trial
-        {
-            on_event:entry()
-            {
-                test_page.action(
-                        this,
-                        reference_time,
-                        test.cycle + 1
-                        );
-                task.current_trial++;
-                control.set_current_trial(task.current_trial);
-            }
+//         Trial trial
+//         {
+//             on_event:entry()
+//             {
+//                 test_page.action(
+//                         this,
+//                         reference_time,
+//                         test.cycle + 1
+//                         );
+//                 task.current_trial++;
+//                 control.set_current_trial(task.current_trial);
+//             }
             
-            on_event:exit()
-            {
-                TestOutput output;
+//             on_event:exit()
+//             {
+//                 TestOutput output;
 
-                output.trialnum = test.cycle + 1;
-                output.lt       = int(test_page.response.cumlt);
-                output.nlt      = int(test_page.response.cumnlt);
-                output.looks    = test_page.response.nlooks;
-                output.lookaways= test_page.response.nlookaways;
-                output.phase    = PHASE_ATTENTION;
-                output.crit_met = hab_crit_met;
+//                 output.trialnum = test.cycle + 1;
+//                 output.lt       = int(test_page.response.cumlt);
+//                 output.nlt      = int(test_page.response.cumnlt);
+//                 output.looks    = test_page.response.nlooks;
+//                 output.lookaways= test_page.response.nlookaways;
+//                 output.phase    = PHASE_ATTENTION;
+//                 output.crit_met = hab_crit_met;
 
-                output_append(output);
-            }
-        }
-    }
-}
+//                 output_append(output);
+//             }
+//         }
+//     }
+// }
 
 
 void action (Part caller)

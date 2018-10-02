@@ -457,7 +457,7 @@ Page test_page
     }
                               
     // Starts a hab trial.
-    void hab_action(Object caller, HabItem it, time tref)
+    void hab_action(Object caller, HabItem, time tref)
     {
 
         //setup control boxes
