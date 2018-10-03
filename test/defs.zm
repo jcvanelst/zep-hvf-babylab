@@ -23,7 +23,9 @@ const int  NUM_PIC_PRESENTATION  = 12;
 const int  IM_WIDTH              = 450;
 const int  IM_HEIGHT             = 300;
 
-
+//hvf ori
+const dur LOOKAWAY_CONTINUES_THRESHOLD = 2s;
+const int TOKEN_REPETITION_MAX         = 36;
 
 // test/habituation phase.
 

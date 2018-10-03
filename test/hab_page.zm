@@ -38,9 +38,6 @@ Page hab_page
         }
     }
 
-
-
-
     // Key press doesn't work properly since the baby window is a output
     // only window.
     on_event:key_press()

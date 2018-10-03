@@ -9,6 +9,8 @@
 // }
 
 //new plan
+plugin zep_file;
+
 enum ItemType
 {
     PRE_ATTENTION,          // Stimulus from pre or post attention
@@ -53,7 +55,6 @@ record HabItem {
     string sound3_filename;
     string sound4_filename;
     string sound5_filename;
-            
     string sound6_filename;
     string sound7_filename;
     string sound8_filename;
@@ -280,7 +281,7 @@ string[..] movie2_frames =
 // }
 
 //hvf simple copies
-string next_movie1_stim()
+string next_movie_stim()
 {
     string ret = movie1_frames[movie_frame_index];
     if (movie_frame_index == movie1_frames.size - 1 && movie_frame_inc != -1)
@@ -292,16 +293,16 @@ string next_movie1_stim()
 }
 
 //hvf simple copies
-string next_movie2_stim()
-{
-    string ret = movie2_frames[movie_frame_index];
-    if (movie_frame_index == movie2_frames.size - 1 && movie_frame_inc != -1)
-        movie2_frame_inc = -1;
-    else if(movie_frame_index == 0 && movie_frame_inc != 1)
-        movie_frame_inc = 1;
-    movie_frame_index += movie_frame_inc;
-    return ret;
-}
+// string next_movie2_stim()
+// {
+//     string ret = movie2_frames[movie_frame_index];
+//     if (movie_frame_index == movie2_frames.size - 1 && movie_frame_inc != -1)
+//         movie_frame_inc = -1;
+//     else if(movie_frame_index == 0 && movie_frame_inc != 1)
+//         movie_frame_inc = 1;
+//     movie_frame_index += movie_frame_inc;
+//     return ret;
+// }
 
 void reset_movie_stims()
 {
