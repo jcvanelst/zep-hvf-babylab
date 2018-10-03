@@ -1,3 +1,4 @@
+plugin zep_file;
 
 import hvf_event;
 import defs;

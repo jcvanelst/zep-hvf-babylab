@@ -405,7 +405,7 @@ Page pre_page
             output.trial    = nth_trial;
             output.tstart   = int(start_time - begin);
             output.tend     = int(finish_time - begin);
-            output.stimulus = clip.file;//NULL;    //'beep'; //clip.file;
+            output.stimulus = null ;//clip.file;//NULL;    //'beep'; //clip.file;
 
             pre_stim_output_append(output);
             if (is_last) {
