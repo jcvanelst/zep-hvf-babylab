@@ -405,7 +405,7 @@ Page pre_page
             output.trial    = nth_trial;
             output.tstart   = int(start_time - begin);
             output.tend     = int(finish_time - begin);
-            output.stimulus = null ;//clip.file;//NULL;    //'beep'; //clip.file;
+            output.stimulus = "beep" ;//clip.file;//NULL;    //'beep'; //clip.file;
 
             pre_stim_output_append(output);
             if (is_last) {
@@ -417,7 +417,7 @@ Page pre_page
             done(CONTINUE);
         }
 
-        time play(time t, string fn, SoundDirection direction)
+        time play(time t, SoundDirection direction)
         {
             abort();
             dir = direction;
@@ -454,7 +454,7 @@ Page pre_page
             beep.fade_out_duration = 5ms;
 
             //clip.file = stimuli_dir() + "sounds/ae-E continua/" + fn;
-            clip.file              = "beep";
+            //clip.file              = "beep";
 
             start (t);
             return expected_start_time;
@@ -514,7 +514,7 @@ Page pre_page
         // test_window1.activate(); // to capture keyboard events.
         this.target    = caller;
 
-        time audio_onset = audio.play(tref, item.snd_fn, SND_DIRECTION_FRONT);
+        time audio_onset = audio.play(tref, SND_DIRECTION_FRONT);
         
         if(first)
         {

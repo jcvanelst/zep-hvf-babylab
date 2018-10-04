@@ -6,7 +6,10 @@ import sound_direction;
 Page hab_page
 {
     HabItem     hitem;
-    FaceItem    fitem;git al
+    FaceItem    fitem;
+
+    string hab_old_face = "";
+    string test_old_face = "";
 
     int         nth_trial;      // the number of the current trial.
 
@@ -199,7 +202,7 @@ Page hab_page
         token_played_counter++;
         if(token_played_counter >= TOKEN_REPETITION_MAX)
         {
-            done(CONTINUE, t);
+            done (CONTINUE); //done(CONTINUE, t);
             return true;
         }
         return false;
@@ -266,7 +269,7 @@ Page hab_page
         void setup()
         {
             snd_index = 0;
-            hab_audio.abort();
+            audio.abort();
             hab_file_names.size = 12;
 
             hab_file_names[0] = hitem.sound1_filename;
@@ -308,6 +311,7 @@ Page hab_page
         max_trial_dur_timer.abort();
         abort_trial_timer.abort();
         control.erase_clock();
+        control.clear_status();
         control.hide_speaker_icon(FRONT_SIDE | LEFT_SIDE | RIGHT_SIDE);
     }
 
@@ -336,7 +340,7 @@ Page hab_page
         {
             n = random(0, hab_face_items.size);         
         }
-        hfaceitem = hab_face_items[n];
+        fitem = hab_face_items[n];
         hab_old_face = hab_face_items[n].face_filename;
     }
 
@@ -357,7 +361,7 @@ Page hab_page
         this.target    = caller;
 
         // Save the passed trial control parameters.
-        hitem = it;
+        //hitem = it;
 
         //and the faces separately
         set_hab_face(); 
@@ -387,7 +391,7 @@ Page hab_page
         // Update status line on control window. Cleared in done() above.
         control.set_status(
             string(hitem.id) + "  " + 
-            string(hfaceitem.face_filename));
+            string(fitem.face_filename));
 
         if (MAX_TRIAL_DURATION > 0s)
             max_trial_dur_timer.start(tref + MAX_TRIAL_DURATION);

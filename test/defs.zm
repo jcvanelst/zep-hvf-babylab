@@ -26,6 +26,7 @@ const int  IM_HEIGHT             = 300;
 //hvf ori
 const dur LOOKAWAY_CONTINUES_THRESHOLD = 2s;
 const int TOKEN_REPETITION_MAX         = 36;
+const dur INTERSOUND_INTERVAL          = 1s;
 
 // test/habituation phase.
 

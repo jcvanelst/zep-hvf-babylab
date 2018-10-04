@@ -169,7 +169,7 @@ Block task
 
     Block habituation
     {
-        HabItem item = hab_items[habituation.cycle];
+        //HabItem item; //= hab_items;//[0];//[habituation.cycle];
 
         on_event:entry()
         {
@@ -201,6 +201,9 @@ Block task
 
             on_event:entry()
             {
+                // needs               
+                HabItem item = hab_items[habituation.cycle];
+                
                 hab_page.action(
                         this,
                         reference_time,
