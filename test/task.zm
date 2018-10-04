@@ -62,7 +62,8 @@ Block task
             // attention_page.setup(); // att grabber page
             // attention_page.action
             //pre_page.setup();
-            //pre_page.action(this, event_time);
+            num_cycles = pre_items.size;
+            println(num_cycles);
             pre_page.start_grid(event_time);
         }
 
@@ -97,7 +98,7 @@ Block task
 
             on_event:exit()
             {
-                trial.reference_time = pre_page.start_grid(now());
+                attention_page.layout.stop_playing();
             }
         }
         
@@ -203,7 +204,7 @@ Block task
             {
                 // needs               
                 HabItem item = hab_items[habituation.cycle];
-                
+
                 hab_page.action(
                         this,
                         reference_time,
