@@ -13,10 +13,10 @@ plugin zep_file;
 
 enum ItemType
 {
-    PRE_ATTENTION,          // Stimulus from pre or post attention
+    //PRE_ATTENTION,          // Stimulus from pre or post attention
     HABITUATION,        // Stimulus from habituation phase
     TEST,              // Stimulus from test phase/
-    POST_ATTENTION
+    //POST_ATTENTION
 }
 
 // record TestItem
@@ -26,15 +26,15 @@ enum ItemType
 //     string      snd_fn;     // Which stimulus is presented.
 // }
 
-record PreItem {
-    int             id; 
-    ItemType        type;
-}
+// record PreItem {
+//     int             id; 
+//     ItemType        type;
+// }
 
-record PostItem {
-    int             id; 
-    ItemType        type;
-}
+// record PostItem {
+//     int             id; 
+//     ItemType        type;
+// }
 
 record TestItem {
 
@@ -71,13 +71,13 @@ record FaceItem {
 }
 
 // arrays for pre
-PreItem[..]             pre_items; 
+//PreItem[..]             pre_items; 
 
 // arrays for hab and test
 HabItem[..]             hab_items;
 TestItem[..]            test_items;
 
-PostItem[..]            post_items;//could be duplicate oof pre?
+//PostItem[..]            post_items;//could be duplicate oof pre?
 
 // array for test faces 
 FaceItem[..]            test_face_items; 
@@ -149,6 +149,34 @@ string[..] grid_images = {
     "stimuli/images/vork-small.png",
     "stimuli/images/zebra-small.png"
 };
+
+// string[..] gridimages = {
+//     "appel-small.png",
+//     "auto-small.png",
+//     "ballon-small.png",
+//     "bal-small.png",
+//     "banaan-small.png",
+//     "beer-small.png",
+//     "boom-small.png",
+//     "dolfijn-small.png",
+//     "fiets-small.png",
+//     "gieter-small.png",
+//     "giraf-small.png",
+//     "kado-small.png",
+//     "kasteel-small.png",
+//     "kikker-small.png",
+//     "kip-small.png",
+//     "koe-small.png",
+//     "konijn-small.png",
+//     "kuiken-small.png",
+//     "pinguin-small.png",
+//     "schoen-small.png",
+//     "stoel-small.png",
+//     "vliegtuig-small.png",
+//     "vlinder-small.png",
+//     "vork-small.png",
+//     "zebra-small.png"
+// };
 
 //hvf version ims
 // string[..] attention_images = {
@@ -792,283 +820,5 @@ bool file_okay(string filepath)
 // TestItem[..] attention_items =
 // {
 //     {1, ATTENTION, "bupoki-final"},
-// };
-
-// string[..] unimodal = {
-//     "ae_1_01",
-//     "ae_1_02",
-//     "ae_1_03",
-//     "ae_1_04",
-//     "ae_1_01",
-//     "ae_1_02",
-//     "ae_1_03",
-//     "ae_1_04",
-//     "ae_2_01",
-//     "ae_2_02",
-//     "ae_2_03",
-//     "ae_2_04",
-//     "ae_2_01",
-//     "ae_2_02",
-//     "ae_2_03",
-//     "ae_2_04",
-//     "ae_3_01",
-//     "ae_3_02",
-//     "ae_3_03",
-//     "ae_3_04",
-//     "ae_3_01",
-//     "ae_3_02",
-//     "ae_3_03",
-//     "ae_3_04",
-//     "ae_3_01",
-//     "ae_3_02",
-//     "ae_3_03",
-//     "ae_3_04",
-//     "ae_3_01",
-//     "ae_3_02",
-//     "ae_3_03",
-//     "ae_3_04",
-//     "ae_4_01",
-//     "ae_4_02",
-//     "ae_4_03",
-//     "ae_4_04",
-//     "ae_4_01",
-//     "ae_4_02",
-//     "ae_4_03",
-//     "ae_4_04",
-//     "ae_4_01",
-//     "ae_4_02",
-//     "ae_4_03",
-//     "ae_4_04",
-//     "ae_4_01",
-//     "ae_4_02",
-//     "ae_4_03",
-//     "ae_4_04",
-//     "ae_4_01",
-//     "ae_4_02",
-//     "ae_4_03",
-//     "ae_4_04",
-//     "ae_4_01",
-//     "ae_4_02",
-//     "ae_4_03",
-//     "ae_4_04",
-//     "ae_4_01",
-//     "ae_4_02",
-//     "ae_4_03",
-//     "ae_4_04",
-//     "ae_4_01",
-//     "ae_4_02",
-//     "ae_4_03",
-//     "ae_4_04",
-//     "ae_4_01",
-//     "ae_4_02",
-//     "ae_4_03",
-//     "ae_4_04",
-//     "ae_5_01",
-//     "ae_5_02",
-//     "ae_5_03",
-//     "ae_5_04",
-//     "ae_5_01",
-//     "ae_5_02",
-//     "ae_5_03",
-//     "ae_5_04",
-//     "ae_5_01",
-//     "ae_5_02",
-//     "ae_5_03",
-//     "ae_5_04",
-//     "ae_5_01",
-//     "ae_5_02",
-//     "ae_5_03",
-//     "ae_5_04",
-//     "ae_5_01",
-//     "ae_5_02",
-//     "ae_5_03",
-//     "ae_5_04",
-//     "ae_5_01",
-//     "ae_5_02",
-//     "ae_5_03",
-//     "ae_5_04",
-//     "ae_5_01",
-//     "ae_5_02",
-//     "ae_5_03",
-//     "ae_5_04",
-//     "ae_5_01",
-//     "ae_5_02",
-//     "ae_5_03",
-//     "ae_5_04",
-//     "ae_5_01",
-//     "ae_5_02",
-//     "ae_5_03",
-//     "ae_5_04",
-//     "ae_6_01",
-//     "ae_6_02",
-//     "ae_6_03",
-//     "ae_6_04",
-//     "ae_6_01",
-//     "ae_6_02",
-//     "ae_6_03",
-//     "ae_6_04",
-//     "ae_6_01",
-//     "ae_6_02",
-//     "ae_6_03",
-//     "ae_6_04",
-//     "ae_6_01",
-//     "ae_6_02",
-//     "ae_6_03",
-//     "ae_6_04",
-//     "ae_7_01",
-//     "ae_7_02",
-//     "ae_7_03",
-//     "ae_7_04",
-//     "ae_7_01",
-//     "ae_7_02",
-//     "ae_7_03",
-//     "ae_7_04",
-//     "ae_8_01",
-//     "ae_8_02",
-//     "ae_8_03",
-//     "ae_8_04",
-//     "ae_8_01",
-//     "ae_8_02",
-//     "ae_8_03",
-//     "ae_8_04",
-// };
-
-// string[..] bimodal = {
-//     "ae_1_01",
-//     "ae_1_02",
-//     "ae_1_03",
-//     "ae_1_04",
-//     "ae_1_01",
-//     "ae_1_02",
-//     "ae_1_03",
-//     "ae_1_04",
-//     "ae_2_01",
-//     "ae_2_02",
-//     "ae_2_03",
-//     "ae_2_04",
-//     "ae_2_01",
-//     "ae_2_02",
-//     "ae_2_03",
-//     "ae_2_04",
-//     "ae_2_01",
-//     "ae_2_02",
-//     "ae_2_03",
-//     "ae_2_04",
-//     "ae_2_01",
-//     "ae_2_02",
-//     "ae_2_03",
-//     "ae_2_04",
-//     "ae_2_01",
-//     "ae_2_02",
-//     "ae_2_03",
-//     "ae_2_04",
-//     "ae_2_01",
-//     "ae_2_02",
-//     "ae_2_03",
-//     "ae_2_04",
-//     "ae_2_01",
-//     "ae_2_02",
-//     "ae_2_03",
-//     "ae_2_04",
-//     "ae_2_01",
-//     "ae_2_02",
-//     "ae_2_03",
-//     "ae_2_04",
-//     "ae_2_01",
-//     "ae_2_02",
-//     "ae_2_03",
-//     "ae_2_04",
-//     "ae_3_01",
-//     "ae_3_02",
-//     "ae_3_03",
-//     "ae_3_04",
-//     "ae_3_01",
-//     "ae_3_02",
-//     "ae_3_03",
-//     "ae_3_04",
-//     "ae_3_01",
-//     "ae_3_02",
-//     "ae_3_03",
-//     "ae_3_04",
-//     "ae_3_01",
-//     "ae_3_02",
-//     "ae_3_03",
-//     "ae_3_04",
-//     "ae_4_01",
-//     "ae_4_02",
-//     "ae_4_03",
-//     "ae_4_04",
-//     "ae_4_01",
-//     "ae_4_02",
-//     "ae_4_03",
-//     "ae_4_04",
-//     "ae_5_01",
-//     "ae_5_02",
-//     "ae_5_03",
-//     "ae_5_04",
-//     "ae_5_01",
-//     "ae_5_02",
-//     "ae_5_03",
-//     "ae_5_04",
-//     "ae_6_01",
-//     "ae_6_02",
-//     "ae_6_03",
-//     "ae_6_04",
-//     "ae_6_01",
-//     "ae_6_02",
-//     "ae_6_03",
-//     "ae_6_04",
-//     "ae_6_01",
-//     "ae_6_02",
-//     "ae_6_03",
-//     "ae_6_04",
-//     "ae_6_01",
-//     "ae_6_02",
-//     "ae_6_03",
-//     "ae_6_04",
-//     "ae_7_01",
-//     "ae_7_02",
-//     "ae_7_03",
-//     "ae_7_04",
-//     "ae_7_01",
-//     "ae_7_02",
-//     "ae_7_03",
-//     "ae_7_04",
-//     "ae_7_01",
-//     "ae_7_02",
-//     "ae_7_03",
-//     "ae_7_04",
-//     "ae_7_01",
-//     "ae_7_02",
-//     "ae_7_03",
-//     "ae_7_04",
-//     "ae_7_01",
-//     "ae_7_02",
-//     "ae_7_03",
-//     "ae_7_04",
-//     "ae_7_01",
-//     "ae_7_02",
-//     "ae_7_03",
-//     "ae_7_04",
-//     "ae_7_01",
-//     "ae_7_02",
-//     "ae_7_03",
-//     "ae_7_04",
-//     "ae_7_01",
-//     "ae_7_02",
-//     "ae_7_03",
-//     "ae_7_04",
-//     "ae_7_01",
-//     "ae_7_02",
-//     "ae_7_03",
-//     "ae_7_04",
-//     "ae_8_01",
-//     "ae_8_02",
-//     "ae_8_03",
-//     "ae_8_04",
-//     "ae_8_01",
-//     "ae_8_02",
-//     "ae_8_03",
-//     "ae_8_04",
 // };
 

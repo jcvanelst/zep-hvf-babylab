@@ -62,8 +62,8 @@ Block task
             // attention_page.setup(); // att grabber page
             // attention_page.action
             //pre_page.setup();
-            num_cycles = pre_items.size;
-            println(num_cycles);
+            //num_cycles = NUM_PIC_PRESENTATION;
+            // println(num_cycles);
             pre_page.start_grid(event_time);
         }
 
@@ -106,8 +106,8 @@ Block task
         {
             on_event:entry()
             {
-                PreItem item = pre_items[pre_attention.cycle];
-                
+                //PreItem item = pre_items[pre_attention.cycle];
+                pre_attention.num_cycles = NUM_PIC_PRESENTATION;
                 bool is_last = pre_attention.cycle == pre_attention.num_cycles - 1;
                 bool is_first = pre_attention.cycle == 0;
                 
@@ -115,18 +115,16 @@ Block task
                     pre_page.action(
                             this,
                             reference_time,
-                            item,
                             is_last,
                             is_first
                             );
                 else // start after isi.
                     pre_page.action(
-                            this,
-                            reference_time + FAM_ISI,
-                            item,
-                            is_last,
-                            is_first
-                            );
+                        this,
+                        reference_time + FAM_ISI,
+                        is_last,
+                        is_first
+                        );
                 
             }
 
@@ -135,6 +133,7 @@ Block task
                 TestOutput output;//PreOutput output;
 
                 output.trialnum = pre_attention.cycle + 1;
+                //output.trialnum = pre_page.grid_timer.nth_draw;
                 if(pre_page.is_last) // report final
                 {
                     output.lt       = int(pre_page.response.cumlt);
@@ -170,7 +169,7 @@ Block task
 
     Block habituation
     {
-        //HabItem item; //= hab_items;//[0];//[habituation.cycle];
+        HabItem item; //= hab_items;//[0];//[habituation.cycle];
 
         on_event:entry()
         {
