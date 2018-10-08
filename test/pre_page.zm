@@ -10,13 +10,14 @@ Page pre_page
     bool        is_last;        // whether the current stimulus is the last.
 
     // reference to the pictures in ./stimuli.zm
-    string   grid_images;
+    string[]   images;
     // string   image_dir;
 
     init()
     {
         fill_pattern_color = rgb:BAD6EB;
         //image_dir = stimuli_dir() + "images/";
+        images = grid_images;
     }
 
 
