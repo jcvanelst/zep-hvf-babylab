@@ -425,7 +425,7 @@ int read_hab_csv(HabItem[] target, string source)
         println("Trouble loading from " + source);
         return err;         
     }
-
+    println ("read hab files into memory???");
     return OK;
      // Load data into hab_items table.
 }

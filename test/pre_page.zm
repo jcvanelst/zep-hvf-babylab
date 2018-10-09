@@ -46,7 +46,8 @@ Page pre_page
         {
             if (nth_draw < NUM_PIC_PRESENTATION) {
                 layout.show_new_pictures();
-                start(expected_expire_time + PICTURE_SHOW_DURATION);
+                // start(expected_expire_time + PICTURE_SHOW_DURATION);
+                start(expire_time + INTER_GRID_DURATION);
                 nth_draw++;
             }
             else
