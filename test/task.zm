@@ -113,7 +113,7 @@ Block task
                 //PreItem item = pre_items[pre_attention.cycle];
                 pre_attention.num_cycles = NUM_PIC_PRESENTATION;
                 bool is_last = pre_attention.cycle == 
-                                                pre_attention.num_cycles- 1;
+                                                pre_attention.num_cycles - 1;
                 bool is_first = pre_attention.cycle == 0;
                 
                 println("--------------------");
@@ -136,7 +136,7 @@ Block task
 
             on_event:exit()
             {   
-                pre_page.stop_grid();
+                //pre_page.stop_grid();//not this one
                 TestOutput output;//PreOutput output;
 
                 output.trialnum = pre_attention.cycle + 1;
