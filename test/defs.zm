@@ -7,7 +7,7 @@
 const int  N_GRID_IMS                   = 4; // Number of visible grid images.
                                              // Must be a value smaller then 9.
 const dur  INTER_GRID_DURATION          = 2s;// Time between update of 3*3 grid.
-const dur  FAM_ISI                      = 1000ms;
+const dur  ATTENTION_ISI                = 1000ms;
 
 // but we do want a pre-test (taken from HVF original)
 const real BEEP_FREQUENCY        = 369; //330;

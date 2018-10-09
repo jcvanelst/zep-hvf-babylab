@@ -60,10 +60,11 @@ Block task
         on_event:entry()
         {
             // attention_page.setup(); // att grabber page
-            // attention_page.action
+            //attention_page.action;
             //pre_page.setup();
-            //num_cycles = NUM_PIC_PRESENTATION;
-            // println(num_cycles);
+            num_cycles = NUM_PIC_PRESENTATION;
+            //pre_attention.num_cycles = NUM_PIC_PRESENTATION;
+            println(num_cycles);
             pre_page.start_grid(event_time);
         }
 
@@ -79,6 +80,8 @@ Block task
         {
             on_event:entry()
             {
+                println("pre_attention cycle:");
+                println(pre_attention.cycle);
                 if (pre_attention.cycle == 0) {
                     grab_attention.enter();
                 }
@@ -98,7 +101,8 @@ Block task
 
             on_event:exit()
             {
-                attention_page.layout.stop_playing();
+                //attention_page.layout.stop_playing();
+                trial.reference_time = pre_page.start_grid(now());
             }
         }
         
@@ -111,6 +115,8 @@ Block task
                 bool is_last = pre_attention.cycle == pre_attention.num_cycles - 1;
                 bool is_first = pre_attention.cycle == 0;
                 
+                println("--------------------");
+                println (pre_attention.cycle);
                 if (pre_attention.cycle == 0) // start right after attention
                     pre_page.action(
                             this,
@@ -121,11 +127,10 @@ Block task
                 else // start after isi.
                     pre_page.action(
                         this,
-                        reference_time + FAM_ISI,
+                        reference_time + ATTENTION_ISI,
                         is_last,
                         is_first
                         );
-                
             }
 
             on_event:exit()
