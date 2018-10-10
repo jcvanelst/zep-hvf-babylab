@@ -43,7 +43,6 @@ record TestItem {
     int id;
 
     //string image_filename;
-    ItemType   type;                 
     string     sound1_filename;
     string     sound2_filename;
 }
@@ -51,7 +50,6 @@ record TestItem {
 record HabItem {
 
     int id;
-    ItemType type;
     string sound1_filename;
     string sound2_filename;
     string sound3_filename;
@@ -392,7 +390,8 @@ string test_csv_file_name()
 {
     string vari;
     string groupid;
-    
+    string speakerstatus;
+
     string nativeness = 
          expdb.participant.get_enum_field("contrast_native_nonnative");
          
@@ -427,16 +426,16 @@ string test_csv_file_name()
     {
         println("ERROR");
     }
-        
+    
     string name =
-        "test_" + 
-        expdb.participant.get_enum_field("contrast_native_nonnative") + 
-        "_" + 
-        expdb.participant.get_enum_field("first_alternation_alt_nalt") + 
-        "_" + 
-        vari + 
-        groupid  + 
-        ".csv";
+            "test_" +
+            expdb.participant.get_enum_field("contrast_native_nonnative") + 
+            "_" + 
+            expdb.participant.get_enum_field("first_alternation_alt_nalt") +
+            "_"  + 
+            vari + 
+            groupid + 
+            ".csv";
 
     return name;
 }

@@ -5,13 +5,16 @@ enum TestGroup
 	TWO
 }
 
-// const int n_groups = 2;
-// const int n_lists  = 2;
-
-// int assign_participant_to_group()
+// Symbolic definition of groups.
+// enum TestGroup
 // {
-//     if(select_group_from_participant_id() != OK)
-//         select_group_random();
-
-//     return OK;
+//     ALL
 // }
+
+
+// Assigns participant to a group.
+int assign_participant_to_group()
+{
+    // Assign to first (i.e default) group.
+    return select_group_default();
+}

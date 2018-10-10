@@ -19,7 +19,14 @@ void create_participant_fields()
 	expdb.participant.add_enum_field(
         "group_one_two", 
         "one|two");
+    expdb.participant.add_enum_field(
+        "speaker_multiple_single", 
+        "multiple|single");
+    expdb.participant.add_enum_field(
+        "trained_train_ntrain", 
+        "train|ntrain");
 }
+
  
  
 // Checks current values of participant record fields.
@@ -111,6 +118,18 @@ int check_participant_fields()
         print_error("group_one_two isn't filled out correctly.\n");
         return ERROR;
 	}
+
+        if (!expdb.participant.has_enum_field("speaker_multiple_single"))
+    {
+        print_error("speaker_mutiple_single isn't available\n");
+        return ERROR;
+    }
+
+    if (!expdb.participant.has_enum_field("trained_train_ntrain"))
+    {
+        print_error("trained_train_ntrain isn't available\n");
+        return ERROR;
+    }
     return OK;
 }
 

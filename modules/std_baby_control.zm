@@ -2572,4 +2572,10 @@ Page control
     {
         keymap.size = 0;
     }
+
+    void set_current_trial(int n)
+    {
+        current_trial = n;
+        show_state_info();
+    }
 }
