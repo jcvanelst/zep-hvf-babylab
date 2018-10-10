@@ -1,15 +1,15 @@
 
-enum TestGroup
-{
-	ONE,
-	TWO
-}
-
-// Symbolic definition of groups.
 // enum TestGroup
 // {
-//     ALL
+// 	ONE,
+// 	TWO
 // }
+
+//Symbolic definition of groups.
+enum TestGroup
+{
+    ALL
+}
 
 
 // Assigns participant to a group.
