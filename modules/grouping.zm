@@ -1,19 +1,17 @@
 
 enum TestGroup
 {
-    D_L1,       // Risk of dyslexia list 1
-    D_L2,       // Risk of dyslexia list 2
-    C_L1,       // Controls list 1
-    C_L2,       // Controls list 2
+	ONE,
+	TWO
 }
 
-const int n_groups = 2;
-const int n_lists  = 2;
+// const int n_groups = 2;
+// const int n_lists  = 2;
 
-int assign_participant_to_group()
-{
-    if(select_group_from_participant_id() != OK)
-        select_group_random();
+// int assign_participant_to_group()
+// {
+//     if(select_group_from_participant_id() != OK)
+//         select_group_random();
 
-    return OK;
-}
+//     return OK;
+// }

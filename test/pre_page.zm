@@ -525,7 +525,7 @@ Page pre_page
     {
         control.erase_clock();
         //control.erase_clock();
-        //layout.stop_grid();
+        layout.stop_grid();
     }
 
     time action(Object      caller,
@@ -541,11 +541,12 @@ Page pre_page
         this.target    = caller;
 
         time audio_onset = audio.play(tref, SND_DIRECTION_FRONT);
-        
+        control.set_status("pre attention test");
+
         if(first)
         {
             control.start_clock(audio_onset);
-            control.set_status("pre attention test");
+            //control.set_status("pre attention test");
             response.start(audio_onset);
         }
         control.target = this;

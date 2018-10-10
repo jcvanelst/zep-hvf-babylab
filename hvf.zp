@@ -1,11 +1,17 @@
-#!/usr/bin/env zep-1.14
+//#!/usr/bin/env zep-1.14
 
 import response_box; // import response_box before std_baby_windows_1
 import std_baby_windows_uil;
 import std_entry_page2;
 import std_exit_page2;
 import std_sound_playback;
+
+import test::stimuli;
+import test::output;
+
 import test::hvf_event;
+// import test::stimuli;
+import test::defs;
 import test::task;
 
 
@@ -13,12 +19,33 @@ Experiment experiment
 {
     on_event:entry()
     {
+        if(check_participant_fields() != OK) terminate;
+        if( test::load_stimuli() != OK) terminate;
+        
+        setup_response_box(CONTINUE);
+
+        // test_output.configured_habituation_threshold = 
+        //     LOOKTIME_HABITUATION_THRESHOLD;
+        // test_output.configured_attention_loss_threshold = 
+        //     LOOKTIME_PRE_POST_THRESHOLD;
+
         // Show test windows and open button box.
         show_test_windows();
         control.button_box.open("/dev/ttyACM0");
         // maximize ctrl_window
         ctrl_window.is_maximized = true;
     }
+
+    void setup_response_box(int button_val=1)
+    {
+        if( !control.button_box.is_open)
+            control.button_box.open();
+
+        control.button_box.disable_buttons();
+        control.button_box.enable_all_buttons(button_val);
+        control.target = control;
+    }
+
 
     on_event:message()
     {
@@ -79,4 +106,6 @@ Experiment experiment
         }
     }
 }
+
+
 

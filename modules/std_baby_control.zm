@@ -224,23 +224,20 @@ Page control
             min_width = 700;
             min_height = 600;
 
-            // only enable part 1
-            // The experimenter shouldn't see where in the experiment the
-            // Infant is.
-            partnames.size = 2;
+            partnames.size = 6;
             partnames[0] = info2.state1lab;
             partnames[1] = info2.state2lab;
-//            partnames[2] = info2.state3lab;
-//            partnames[3] = info2.state4lab;
-//            partnames[4] = info2.state5lab;
-//            partnames[5] = info2.state6lab;
-            partvalues.size = 2;
+            partnames[2] = info2.state3lab;
+            partnames[3] = info2.state4lab;
+            partnames[4] = info2.state5lab;
+            partnames[5] = info2.state6lab;
+            partvalues.size = 6;
             partvalues[0] = info2.state1;
             partvalues[1] = info2.state2;
-//            partvalues[2] = info2.state3;
-//            partvalues[3] = info2.state4;
-//            partvalues[4] = info2.state5;
-//            partvalues[5] = info2.state6;
+            partvalues[2] = info2.state3;
+            partvalues[3] = info2.state4;
+            partvalues[4] = info2.state5;
+            partvalues[5] = info2.state6;
         }
 
 
@@ -439,6 +436,17 @@ Page control
                 }
             }
 
+            // RectangleShape counter_background
+            // {
+            //     init()
+            //     {
+            //         //corner_radius = 10;
+            //         fill_pattern_color = color:black;
+            //         is_visible = true;
+            //         //height = 15;
+            //         //width  = 300;
+            //     }
+            // }
 
             TextShape counter
             {
@@ -454,7 +462,7 @@ Page control
 
             CrossShape attention_cross
             {
-                const color ATT_CROSS_COLOR = color:red;
+                const color ATT_CROSS_COLOR = color:white;
 
                 on_event:init()
                 {
@@ -1139,11 +1147,75 @@ Page control
 
     void show_state_info()
     {
-        // Display the phase so that you can see
-        layout.partnames[0].text = experiment.level_part_name(1);
-        layout.partnames[1].text = "trial";
+        // Show where we are in main "experiment" object.
+        int nlabels = layout.partnames.size;
+        int nlevels = experiment.num_levels;
+        int n;
+        int m = 1;
+        while (n < nlabels)
+    {
+        if (m >= nlevels) break;
+            int ncycles = experiment.level_num_cycles(m-1);
+            int cycle = experiment.level_cycle(m-1);
+            if (ncycles > 1)
+            {
+                layout.partnames[n].text = experiment.level_part_name(m) + ":";
+                layout.partvalues[n].text = 
+                    string(cycle+1) + "/" + string(ncycles);
+            }
+            else if (ncycles < 0)
+            {
+                layout.partnames[n].text = experiment.level_part_name(m) + ":";
+                layout.partvalues[n].text = string(cycle+1);
+            }
+            else
+            {
+                layout.partnames[n].text = experiment.level_part_name(m);
+                layout.partvalues[n].text = "";
+            }
+        n++;
+        m++;
+    }
 
-        layout.partvalues[1].text = string(current_trial);
+        // Also show where we are in the current sub-experiment if defined.
+    PartList subexp = experiment.connected;
+        if (subexp != null)
+    {
+            nlevels = subexp.num_levels;
+            m = 1;
+            while (n < nlabels)
+        {
+        if (m >= nlevels) break;
+            int ncycles = subexp.level_num_cycles(m-1);
+            int cycle = subexp.level_cycle(m-1);
+            if (ncycles > 1)
+            {
+                    layout.partnames[n].text = subexp.level_part_name(m) + ":";
+                    layout.partvalues[n].text = 
+                    string(cycle+1) + "/" + string(ncycles);
+            }
+            else if (ncycles < 0)
+            {
+                    layout.partnames[n].text = subexp.level_part_name(m) + ":";
+                    layout.partvalues[n].text = string(cycle+1);
+            }
+            else
+            {
+                    layout.partnames[n].text = subexp.level_part_name(m);
+                    layout.partvalues[n].text = "";
+            }
+        n++;
+        m++;
+        }
+    }
+
+        // Clear remaining labels.
+        while (n < nlabels)
+        {
+            layout.partnames[n].text = "";
+            layout.partvalues[n].text = "";
+            n++;
+        }
     }
 
 
@@ -1154,8 +1226,7 @@ Page control
         while (n < nlabels)
         {
             layout.partnames[n].text = "";
-            if (n < layout.partvalues.size)
-                layout.partvalues[n].text = "";
+            layout.partvalues[n].text = "";
             n++;
         }
     }
@@ -2500,12 +2571,5 @@ Page control
     void disable_keys()
     {
         keymap.size = 0;
-    }
-
-
-    void set_current_trial(int n)
-    {
-        current_trial = n;
-        show_state_info();
     }
 }

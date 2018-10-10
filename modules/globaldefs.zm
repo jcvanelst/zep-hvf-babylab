@@ -41,3 +41,9 @@ const bool      GROUP_RECORD_UPDATEABLE         = false;
 // Set this to false if the experimenter should not be aware of the
 // selected group.
 const bool      SHOW_ASSIGNED_GROUP             = true;
+
+// Percentage the looktime needs to fall under to signal habituation.
+const real LOOKTIME_HABITUATION_THRESHOLD        = 0.65;
+
+// Percentage of pre to post allowed:
+const real LOOKTIME_PRE_POST_THRESHOLD          = 0.50;

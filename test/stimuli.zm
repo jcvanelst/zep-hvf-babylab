@@ -11,6 +11,8 @@
 //new plan
 plugin zep_file;
 
+
+
 enum ItemType
 {
     //PRE_ATTENTION,          // Stimulus from pre or post attention
@@ -150,62 +152,6 @@ string[..] grid_images = {
     "stimuli/images/zebra-small.png"
 };
 
-// string[..] gridimages = {
-//     "appel-small.png",
-//     "auto-small.png",
-//     "ballon-small.png",
-//     "bal-small.png",
-//     "banaan-small.png",
-//     "beer-small.png",
-//     "boom-small.png",
-//     "dolfijn-small.png",
-//     "fiets-small.png",
-//     "gieter-small.png",
-//     "giraf-small.png",
-//     "kado-small.png",
-//     "kasteel-small.png",
-//     "kikker-small.png",
-//     "kip-small.png",
-//     "koe-small.png",
-//     "konijn-small.png",
-//     "kuiken-small.png",
-//     "pinguin-small.png",
-//     "schoen-small.png",
-//     "stoel-small.png",
-//     "vliegtuig-small.png",
-//     "vlinder-small.png",
-//     "vork-small.png",
-//     "zebra-small.png"
-// };
-
-//hvf version ims
-// string[..] attention_images = {
-//     "appel.png",
-//     "auto.png",
-//     "ballon.png",
-//     "bal.png",
-//     "banaan.png",
-//     "beer.png",
-//     "boom.png",
-//     "dolfijn.png",
-//     "fiets.png",
-//     "gieter.png",
-//     "giraf.png",
-//     "kado.png",
-//     "kasteel.png",
-//     "kikker.png",
-//     "kip.png",
-//     "koe.png",
-//     "konijn.png",
-//     "kuiken.png",
-//     "pinguin.png",
-//     "schoen.png",
-//     "stoel.png",
-//     "vliegtuig.png",
-//     "vlinder.png",
-//     "vork.png",
-//     "zebra.png"
-// };
 
 
 string[..] video_frames = {
@@ -341,26 +287,6 @@ void reset_movie_stims()
 //************** LOADING AND CHECKING STIMULI *******************************//
 
 
-/**
- * Use randomize_list
- */
-// void prepare_fam_items()
-// {
-//     if      (selected_group == D_L1) {
-//         prepare_fam_bimodal();
-//     }
-//     else if (selected_group == D_L2) {
-//         prepare_fam_unimodal();
-//     }
-//     else if (selected_group == C_L1) {
-//         prepare_fam_unimodal();
-//     }
-//     else { // selected_group == C_L2) 
-//         prepare_fam_bimodal();
-//     }
-//     fam_items.shuffle(0, -1);
-// }
-
 int load_stimuli()
 {
     int status = OK;
@@ -425,7 +351,6 @@ int read_hab_csv(HabItem[] target, string source)
         println("Trouble loading from " + source);
         return err;         
     }
-    println ("read hab files into memory???");
     return OK;
      // Load data into hab_items table.
 }

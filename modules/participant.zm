@@ -1,0 +1,116 @@
+
+// Creates required participant record fields.
+void create_participant_fields()
+{
+	expdb.participant.add_enum_field(
+        "gender_m_f", 
+        "m|f");
+	expdb.participant.add_int_field(
+        "age_months");
+	expdb.participant.add_enum_field(
+        "type_risk_control", 
+        "risk|control");
+	expdb.participant.add_enum_field(
+        "contrast_native_nonnative", 
+        "native|nonnative");
+	expdb.participant.add_enum_field(
+        "first_alternation_alt_nalt", 
+        "alt|nalt");
+	expdb.participant.add_enum_field(
+        "group_one_two", 
+        "one|two");
+}
+ 
+ 
+// Checks current values of participant record fields.
+int check_participant_fields()
+{
+    // check whether we have a enum gender_m_f
+    if (!expdb.participant.has_enum_field("gender_m_f"))
+    {
+        print_error("gender_m_f is not available\n");
+        return ERROR;
+    }
+
+    // Test whether gender_m_f is set correctly.
+	if (expdb.participant.get_enum_field("gender_m_f") != "m" &&
+        expdb.participant.get_enum_field("gender_m_f") != "f")
+    {
+        print_error("gender_m_f is not filled out correctly\n");
+        return ERROR;
+    }
+
+    // younger than 1 month is not likely, 
+    //0 months was valid a option, but failed later on, so set to 1
+    if (!(expdb.participant.has_int_field("age_months") &&
+          expdb.participant.get_int_field("age_months") > 1)
+        )
+    {
+        print_error("age_months is not filled out correctly\n");
+        return ERROR;
+    }
+
+    if (!expdb.participant.has_enum_field("type_risk_control"))
+    {
+        print_error("type_risk_control isn't available\n");
+        return ERROR;
+    }
+    if( (expdb.participant.get_enum_field("type_risk_control") != "risk" &&
+         expdb.participant.get_enum_field("type_risk_control") != "control")
+        )
+    {
+        print_error("type_risk_control not filled out correctly.\n");
+        return ERROR;
+    }
+
+    if (!expdb.participant.has_enum_field("contrast_native_nonnative"))
+    {
+        print_error("contrast_native_nonnative isn't available\n");
+        return ERROR;
+    }
+
+    if ( expdb.participant.get_enum_field("contrast_native_nonnative") != 
+        "native" && 
+        expdb.participant.get_enum_field("contrast_native_nonnative") != 
+        "nonnative"
+        )
+    {
+        print_error("contrast_native_nonnative isn't filled out correctly.\n");
+        return ERROR;
+    }
+
+    if (!expdb.participant.has_enum_field("first_alternation_alt_nalt"))
+    {
+        print_error("first_alternation_alt_nalt isn't available\n");
+        return ERROR;
+    }
+
+    if ( expdb.participant.get_enum_field("first_alternation_alt_nalt") != 
+        "alt" && 
+        expdb.participant.get_enum_field("first_alternation_alt_nalt") != 
+        "nalt"
+        )
+    {
+        print_error("Invalid value: \"" +
+            expdb.participant.get_enum_field("first_alternation_alt_nalt") + 
+            "\"");
+        print_error("first_alternation_alt_nalt isn't filled out correctly.\n");
+        return ERROR;
+    }
+
+    if (!expdb.participant.has_enum_field("group_one_two"))
+    {
+        print_error("group_one_two isn't available\n");
+        return ERROR;
+    }
+
+    if ( expdb.participant.get_enum_field("group_one_two") !="one" &&
+         expdb.participant.get_enum_field("group_one_two") !="two")
+       
+	{
+        print_error("group_one_two isn't filled out correctly.\n");
+        return ERROR;
+	}
+    return OK;
+}
+
