@@ -18,7 +18,7 @@ const dur  PICTURE_SHOW_DURATION = 2000ms;
 
 //const dur  OVERALL_DURATION      = 24s;
 const int  NUM_VISIBLE_IMAGES    = 3;
-const int  NUM_PIC_PRESENTATION  = 12;
+const int  NUM_PIC_PRESENTATION  = 1;
 
 const int  IM_WIDTH              = 450;
 const int  IM_HEIGHT             = 300;

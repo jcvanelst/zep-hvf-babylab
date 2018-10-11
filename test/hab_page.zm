@@ -1,6 +1,7 @@
 
 
 import sound_direction;
+import std_baby_windows1;
 
 
 Page hab_page
@@ -215,17 +216,20 @@ Page hab_page
         SoundFile clip {}
 
         int snd_index = 0;
-     
+
         SoundPlayback playback {}
        
         on_event:start()
         {
             control.show_speaker_icon(FRONT_SIDE);
+            control.begin_clock();
         }
 
         on_event:finish()
         {
             control.hide_speaker_icon(FRONT_SIDE);
+            control.stop_clock(); 
+
             if(!check_if_we_are_done(event_time))
                 this.play(
                         event_time + INTERSOUND_INTERVAL,
@@ -305,19 +309,34 @@ Page hab_page
 
     void done(int message)
     {
-        audio.abort();
-        signal_target(message);
         layout.reset();
+        audio.abort();
+        
+        signal_target(message);
+        
         max_trial_dur_timer.abort();
         abort_trial_timer.abort();
-        control.erase_clock();
+        
+        //control.stop_clock();
         control.clear_status();
         control.hide_speaker_icon(FRONT_SIDE | LEFT_SIDE | RIGHT_SIDE);
     }
 
-    void setup()
-    {
-    }
+
+//     void hab_setup(int output_table_number, 
+//            string output_table_name, 
+//            HabItem[] hab_items,
+//            FaceItem[] hab_face_items, 
+//            string[] movie_frames, 
+//            bool check_for_habituation)
+// {
+//     habtask.output_table_number   = output_table_number;
+//     habtask.output_table_name     = output_table_name;
+//     habtask.movie_frames          = movie_frames;
+//     habtask.hab_items             = hab_items;
+//     habtask.hab_face_items        = hab_face_items;
+//     habtask.check_for_habituation = check_for_habituation;
+// }
 
 
     // Performs cleaning up if necessary.
@@ -347,7 +366,7 @@ Page hab_page
     // Starts a hab trial.
     time action(Object      caller, 
                 time        start, 
-                HabItem     hitem,
+                HabItem     it,
                 int         trial_num
                 )
     {
@@ -361,7 +380,7 @@ Page hab_page
         this.target    = caller;
 
         // Save the passed trial control parameters.
-        //hitem = it;
+        hitem = it;
 
         //and the faces separately
         set_hab_face(); 
@@ -384,7 +403,7 @@ Page hab_page
 
         //control
         control.target = this;
-        control.reset_clock();
+        //control.reset_clock();
         control.begin_clock();
         control.start_clock(tref);
 
