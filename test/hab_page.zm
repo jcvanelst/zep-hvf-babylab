@@ -1,7 +1,7 @@
 
 
 import sound_direction;
-import std_baby_windows1;
+//import std_baby_windows1;
 
 
 Page hab_page
@@ -24,13 +24,15 @@ Page hab_page
     }
  
     //not sure if we need this like other places
-    Timer max_trial_dur_timer
-    {
-        on_event:expire()
-        {
-            response.process_hit(event_time, EVENT_STOP_TIMER);
-        }
-    }
+    // Timer max_trial_dur_timer
+    // {
+    //     on_event:expire()
+    //     {
+    //         response.process_hit(event_time, EVENT_STOP_TIMER);
+    //     }
+    // }
+
+
     
     // Pressing the left button on the button box starts this timer
     // if the timer expires the trial will be aborted.
@@ -141,7 +143,7 @@ Page hab_page
                         cumnlt+= (t - nolookstart);
 
                     // abort trial
-                    done(CONTINUE);
+                    done(CONTINUE, t);
                 }
             }
         }
@@ -168,6 +170,7 @@ Page hab_page
 
             ImageShape picture
             {
+
                 void setup(string file_name)
                 {
                     picture.image    = stimuli_dir() + "images/" + file_name;
@@ -184,13 +187,6 @@ Page hab_page
             }
         }
  
- 
-        time start_stimulus(time t)
-        {
-          return t;
-        }
- 
- 
         void reset()
         {
             full_abort();
@@ -203,7 +199,7 @@ Page hab_page
         token_played_counter++;
         if(token_played_counter >= TOKEN_REPETITION_MAX)
         {
-            done (CONTINUE); //done(CONTINUE, t);
+            done (CONTINUE, t); //done(CONTINUE, t);
             return true;
         }
         return false;
@@ -222,13 +218,13 @@ Page hab_page
         on_event:start()
         {
             control.show_speaker_icon(FRONT_SIDE);
-            control.begin_clock();
+            //control.begin_clock();
         }
 
         on_event:finish()
         {
             control.hide_speaker_icon(FRONT_SIDE);
-            control.stop_clock(); 
+            //control.stop_clock(t); 
 
             if(!check_if_we_are_done(event_time))
                 this.play(
@@ -307,17 +303,18 @@ Page hab_page
     }
 
 
-    void done(int message)
+    void done(int message, time t)
     {
         layout.reset();
         audio.abort();
         
         signal_target(message);
+        target = null;
         
-        max_trial_dur_timer.abort();
+        //max_trial_dur_timer.abort();
         abort_trial_timer.abort();
         
-        //control.stop_clock();
+        control.stop_clock(t);
         control.clear_status();
         control.hide_speaker_icon(FRONT_SIDE | LEFT_SIDE | RIGHT_SIDE);
     }
@@ -372,7 +369,8 @@ Page hab_page
     {
 
         time tref      = test_window1.show_test_page(this, start);
-        nth_trial      = trial_num;    
+        nth_trial      = trial_num;  
+
         token_played_counter = 0;
     
         // Doesn't work because of std_baby_windows1.zm
@@ -384,38 +382,39 @@ Page hab_page
 
         //and the faces separately
         set_hab_face(); 
+
+        //prep audio
+        audio.setup();
  
         // Show this page (if not yet done) and make tref the trial start time.
         //tref = test_window1.show_test_page(this, tref);
-        tref = layout.canvas.start_picture(tref, fitem.face_filename);
+        time bweep = layout.canvas.start_picture(tref, fitem.face_filename);
         
-        audio.setup();
 
-        audio.play(tref, SND_DIRECTION_FRONT);//only front speaker
+
+        time nevermind = audio.play(bweep, SND_DIRECTION_FRONT);//only front speaker
         
-        response.start(tref);
-        layout.start_stimulus(tref);
+        //now await for responses
+        response.start(bweep);
 
-        // control
-        // control.begin_clock();
-        // control.release_clock(tref);
-        // control.start_clock(tref);
-
-        //control
         control.target = this;
-        //control.reset_clock();
+
+        control.reset_clock();
         control.begin_clock();
-        control.start_clock(tref);
+        control.start_clock(bweep);
+        //control.set_status("habituation");
+
+
 
         // Update status line on control window. Cleared in done() above.
         control.set_status(
             string(hitem.id) + "  " + 
             string(fitem.face_filename));
 
-        if (MAX_TRIAL_DURATION > 0s)
-            max_trial_dur_timer.start(tref + MAX_TRIAL_DURATION);
+        //if (MAX_TRIAL_DURATION > 0s)
+            //max_trial_dur_timer.start(tref + MAX_TRIAL_DURATION);
 
-        return tref;
+        return bweep;
     }
 }
 

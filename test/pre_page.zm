@@ -498,17 +498,6 @@ Page pre_page
         control.hide_speaker_icon(FRONT_SIDE | LEFT_SIDE | RIGHT_SIDE);
     }
 
-//    // Currently useless.
-//    void setup(TestItem[] items)
-//    {
-//        // Load first audio file here.
-//        item_list   = items;
-//        item        = item_list[random(0, item_list.size)];
-//
-//        // preload the file
-//        audio.clip.file = stimuli_dir() + "audio/" + item.snd_fn + ".wav";
-//    }
-
     time start_grid(time t)
     {
         control.reset_clock();
@@ -549,6 +538,7 @@ Page pre_page
             //control.set_status("pre attention test");
             response.start(audio_onset);
         }
+
         control.target = this;
 
         this.is_last = last;

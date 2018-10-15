@@ -5,7 +5,7 @@ import std_baby_windows_uil;
 import std_entry_page2;
 import std_exit_page2;
 import std_sound_playback;
-import std_baby_control;
+//import std_baby_control;
 
 import test::stimuli;
 import test::output;
