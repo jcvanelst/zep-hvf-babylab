@@ -16,7 +16,8 @@ import hab_page;
 
 Block task
 {
-    int hab_crit_met;
+    int hab_crit_met_pre;
+    int hab_crit_met_hab;
     int ppid;
     int current_trial;
 
@@ -36,7 +37,9 @@ Block task
         control.button_box.enable_button(int(BUTTON_RIGHT),
                                         EVENT_START_LOOKING);
 
-        hab_crit_met = false;
+        hab_crit_met_pre = false;
+        hab_crit_met_hab = false;
+        
         int ppid = int(control.ppid);
         if (ppid == 0 && expdb.experiment.status != EXP_STATUS_PREPARING) {
             print_error("Oops ppid == 0, did you enter a valid participant id?"
@@ -140,8 +143,8 @@ Block task
                 TestOutput output;//PreOutput output;
 
                 output.trialnum = pre_attention.cycle + 1;
-                //output.trialnum = pre_page.grid_timer.nth_draw;
-                if(pre_page.is_last) // report final
+
+               if(pre_page.is_last) // report final
                 {
                     output.lt       = int(pre_page.response.cumlt);
                     output.nlt      = int(pre_page.response.cumnlt);
@@ -165,7 +168,7 @@ Block task
                 output.looks    = pre_page.response.nlooks;
                 output.lookaways= pre_page.response.nlookaways;
                 output.phase    = PHASE_PRE_ATTENTION;
-                output.crit_met = hab_crit_met;
+                output.crit_met = hab_crit_met_pre;//
 
                 pre_output_append (output);
             }
@@ -181,13 +184,11 @@ Block task
         on_event:entry()
         {
             attention_page.setup();
-            //item_list  = hab_items;//or not
-            //num_cycles = MAX_HABITUATION_TRIALS;
-
+ 
             if (MAX_HABITUATION_TRIALS <= 0)
                 num_cycles = hab_items.size;
             else
-                num_cycles = MAX_TEST_TRIALS;
+                num_cycles = MAX_HABITUATION_TRIALS;
         }
 
         on_event:exit()
@@ -200,15 +201,12 @@ Block task
         {
             on_event:entry()
             {
-                //pre hab page
-                //hab_page.setup();
-                //attention_page.setup();
                 attention_page.action(this, reference_time, 0ms);
             }
 
-            on_event:exit()
-            {
-            }
+            // on_event:exit()
+            // {
+            // }
         }
 
         Trial trial
@@ -239,15 +237,15 @@ Block task
                 output.looks    = hab_page.response.nlooks;
                 output.lookaways= hab_page.response.nlookaways;
                 output.phase    = PHASE_HAB;
-                output.crit_met = hab_crit_met;
+                output.crit_met = hab_crit_met_hab;
 
                 output_append(output);
-                if (habituation_done()) {
+                if (habituation_done_hab()) {
                     /* Update last appended stimulus. Since the
                      * criterion was met there.
                      */
                     hab_output[hab_output.size-1].crit_met = true;
-                    hab_crit_met = true;
+                    hab_crit_met_hab = true;
                 }
             }
         }
@@ -257,7 +255,7 @@ Block task
         {
             on_event:entry()
             {
-                if (habituation_done())
+                if (habituation_done_hab())
                     habituation.leave();
             }
         }

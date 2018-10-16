@@ -10,11 +10,11 @@ const dur  INTER_GRID_DURATION          = 2s;// Time between update of 3*3 grid.
 const dur  ATTENTION_ISI                = 1000ms;
 
 // but we do want a pre-test (taken from HVF original)
-const real BEEP_FREQUENCY        = 369; //330;
-const dur  BEEP_DURATION         = 250ms;
-const real BEEP_VOLUME_RATIO     = 0.25; // beep volume (1 = full loudness, 0 = inaudible)
-const dur  BEEP_ISI              = 1000ms;
-const dur  PICTURE_SHOW_DURATION = 2000ms;
+const real BEEP_FREQUENCY        		= 431; //330;
+const dur  BEEP_DURATION         		= 250ms;
+const real BEEP_VOLUME_RATIO     		= 0.25; // beep volume (1 = full loudness, 0 = inaudible)
+const dur  BEEP_ISI              		= 1000ms;
+const dur  PICTURE_SHOW_DURATION 		= 2000ms;
 
 //const dur  OVERALL_DURATION      = 24s;
 const int  NUM_VISIBLE_IMAGES    = 3;
@@ -24,7 +24,7 @@ const int  IM_WIDTH              = 450;
 const int  IM_HEIGHT             = 300;
 
 //hvf ori
-const dur LOOKAWAY_CONTINUES_THRESHOLD = 2s;
+//const dur LOOKAWAY_CONTINUES_THRESHOLD = 2s;
 const int TOKEN_REPETITION_MAX         = 36;
 const dur INTERSOUND_INTERVAL          = 1s;
 
@@ -40,7 +40,6 @@ const int MAX_ATTENTION_TRIALS          = 1;        // max attention trials.
 const real HABITUATION_CRITERION	    = 65.0;
 
 const dur  MAX_LOOK_AWAY_DURATION	    = 2000ms;
-const dur  MAX_TRIAL_DURATION           = 45s;
 
 const dur  ANIM_REFRESH_PERIOD		    = 2000ms;
 const dur  MOVIE_FRAME_REFRESH_PERIOD   = 100ms;
