@@ -193,7 +193,7 @@ Block task
 
         on_event:exit()
         {
-            save_output();
+            save_hab_output();
         }
 
 
@@ -239,7 +239,7 @@ Block task
                 output.phase    = PHASE_HAB;
                 output.crit_met = hab_crit_met_hab;
 
-                output_append(output);
+                hab_output_append(output);
                 if (habituation_done_hab()) {
                     /* Update last appended stimulus. Since the
                      * criterion was met there.

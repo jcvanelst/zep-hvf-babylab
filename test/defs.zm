@@ -4,7 +4,7 @@
 
 // familiarization phase. not to be used this HVF experiment
 
-const int  N_GRID_IMS                   = 4; // Number of visible grid images.
+const int  N_GRID_IMS                   = 3; // Number of visible grid images.
                                              // Must be a value smaller than 9.
 const dur  INTER_GRID_DURATION          = 2s;// Time between update of 3*3 grid.
 const dur  ATTENTION_ISI                = 1000ms;
@@ -31,13 +31,13 @@ const dur INTERSOUND_INTERVAL          = 1s;
 // test/habituation phase.
 
 const dur  TEST_ISI                     = 1000ms;
-const int  MAX_HABITUATION_TRIALS	    = 8;
+const int  MAX_HABITUATION_TRIALS	    = 15;
 const int  MAX_TEST_TRIALS              = 8;        // Max number of test trials
                                                     // if <= 0 the number
                                                     // of test items.
 const int MAX_ATTENTION_TRIALS          = 1;        // max attention trials.
 
-const real HABITUATION_CRITERION	    = 65.0;
+const real HABITUATION_CRITERION	    = 0.65;
 
 const dur  MAX_LOOK_AWAY_DURATION	    = 2000ms;
 
