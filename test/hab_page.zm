@@ -21,6 +21,7 @@ Page hab_page
     init()
     {
         fill_pattern_color = TEST_PAGE_COLOR;
+        audio.setup();
     }
  
     //not sure if we need this like other places
@@ -55,22 +56,6 @@ Page hab_page
         else
             handle_special_key(this, input_key, input_modifiers);
     }
-
-    // HVF: deals with this differently!!!!
-    // on_event:message()
-    // {
-    //     if(message_sender == control && message_arg == CLOCK_RUNNING)
-    //     {
-    //         continue_timer.abort();
-    //     }
-    //     else if ( message_sender == control && message_arg == CLOCK_PAUSED)
-    //     {
-    //         continue_timer.start(event_time + LOOKAWAY_CONTINUES_THRESHOLD);
-    //     }
-    //     else
-    //         handle_special_key(this, input_key, input_modifiers);
-    // }
-
 
 
     on_event:message()
@@ -162,6 +147,7 @@ Page hab_page
  
         CanvasGadget canvas
         {
+
             on_event:resize()
             {
                 offset_x = floor(test_window1.width / 2);
@@ -170,6 +156,11 @@ Page hab_page
 
             ImageShape picture
             {
+                on_event:start()
+                {
+                    println("Releasing clock.");
+                    control.release_clock(event_time);
+                }
 
                 void setup(string file_name)
                 {
@@ -218,13 +209,11 @@ Page hab_page
         on_event:start()
         {
             control.show_speaker_icon(FRONT_SIDE);
-            //control.begin_clock();
         }
 
         on_event:finish()
         {
             control.hide_speaker_icon(FRONT_SIDE);
-            //control.stop_clock(t); 
 
             if(!check_if_we_are_done(event_time))
                 this.play(
@@ -320,22 +309,6 @@ Page hab_page
     }
 
 
-//     void hab_setup(int output_table_number, 
-//            string output_table_name, 
-//            HabItem[] hab_items,
-//            FaceItem[] hab_face_items, 
-//            string[] movie_frames, 
-//            bool check_for_habituation)
-// {
-//     habtask.output_table_number   = output_table_number;
-//     habtask.output_table_name     = output_table_name;
-//     habtask.movie_frames          = movie_frames;
-//     habtask.hab_items             = hab_items;
-//     habtask.hab_face_items        = hab_face_items;
-//     habtask.check_for_habituation = check_for_habituation;
-// }
-
-
     // Performs cleaning up if necessary.
     void cleanup()
     {
@@ -362,48 +335,44 @@ Page hab_page
 
     // Starts a hab trial.
     time action(Object      caller, 
-                time        start, 
+                time        tref, 
                 HabItem     it,
                 int         trial_num
                 )
     {
 
-        time tref      = test_window1.show_test_page(this, start);
+
         nth_trial      = trial_num;  
 
         token_played_counter = 0;
-    
-        // Doesn't work because of std_baby_windows1.zm
-        // test_window1.activate(); // to capture keyboard events.
-        this.target    = caller;
 
         // Save the passed trial control parameters.
         hitem = it;
 
-        //and the faces separately
-        set_hab_face(); 
-
         //prep audio
         audio.setup();
+
+        set_hab_face(); 
+
+        tref = test_window1.show_test_page(this, tref);
  
         // Show this page (if not yet done) and make tref the trial start time.
         //tref = test_window1.show_test_page(this, tref);
-        time bweep = layout.canvas.start_picture(tref, fitem.face_filename);
         
-
-
-        time nevermind = audio.play(bweep, SND_DIRECTION_FRONT);//only front speaker
-        
-        //now await for responses
-        response.start(bweep);
-
-        control.target = this;
+        this.target = caller;
 
         control.reset_clock();
         control.begin_clock();
-        control.start_clock(bweep);
-        //control.set_status("habituation");
+        control.start_clock(tref);
+        
+        //wait for responses
+        response.start(tref);
 
+        tref = layout.canvas.start_picture(tref, fitem.face_filename);
+        tref = audio.play(tref, SND_DIRECTION_FRONT);//only front speaker
+        control.target = this;
+
+        //control.set_status("habituation");
 
 
         // Update status line on control window. Cleared in done() above.
@@ -414,7 +383,7 @@ Page hab_page
         //if (MAX_TRIAL_DURATION > 0s)
             //max_trial_dur_timer.start(tref + MAX_TRIAL_DURATION);
 
-        return bweep;
+        return tref;
     }
 }
 

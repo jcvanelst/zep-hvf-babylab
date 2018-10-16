@@ -150,15 +150,15 @@ Block task
                 {
                     if(pre_page.response.is_looking)
                     {
-                        output.lt       = int(pre_page.response.cumlt 
-                                    + (event_time - pre_page.response.lookstart) );
-                        output.nlt      = int(pre_page.response.cumnlt);
+                        output.lt = int(pre_page.response.cumlt 
+                                + (event_time - pre_page.response.lookstart) );
+                        output.nlt = int(pre_page.response.cumnlt);
                     }
                     else // !fam_page.response_is_looking
                     {
-                        output.lt       = int(pre_page.response.cumlt);
-                        output.nlt      = int(pre_page.response.cumnlt
-                                    + (event_time - pre_page.response.nolookstart) );
+                        output.lt = int(pre_page.response.cumlt);
+                        output.nlt = int(pre_page.response.cumnlt
+                            + (event_time - pre_page.response.nolookstart) );
                     }
                 }
                 
@@ -176,7 +176,7 @@ Block task
 
     Block habituation
     {
-        HabItem item; //= hab_items;//[0];//[habituation.cycle];
+        //HabItem item; //= hab_items;//[0];//[habituation.cycle];
 
         on_event:entry()
         {
@@ -215,7 +215,7 @@ Block task
                         this,
                         reference_time,
                         hitem,
-                        habituation.cycle // + 1
+                        habituation.cycle
                         );
                 task.current_trial++;
                 control.set_current_trial(task.current_trial);
