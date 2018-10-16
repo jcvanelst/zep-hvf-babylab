@@ -110,11 +110,11 @@ void save_pre_output()
 // habituation phase (12 subtrials)
 void save_hab_output()
 {
-    string fn = expdb.experiment.session.create_table("hab_output", 1);
+    string fn = expdb.experiment.session.create_table("hab_output", 3);
     hab_output.append(fn, namespace_name + ": hab results");
     hab_output.size = 0;
 
-    fn = expdb.experiment.session.create_table("hab_stim", 2);
+    fn = expdb.experiment.session.create_table("hab_stim", 4);
     hab_stim_output.append(fn, ": hab stimulus table");
     hab_stim_output.size = 0;
 }
@@ -122,11 +122,11 @@ void save_hab_output()
 //test phase (two subtrials)
 void save_output()
 {
-    string fn = expdb.experiment.session.create_table("test_output", 3);
+    string fn = expdb.experiment.session.create_table("test_output", 5);
     test_output.append(fn, namespace_name + ": test results");
     test_output.size = 0;
     
-    fn = expdb.experiment.session.create_table("test_stim", 4);
+    fn = expdb.experiment.session.create_table("test_stim", 6);
     test_stim_output.append(fn, ": stimulus table");
     test_stim_output.size = 0;
 }
@@ -134,11 +134,11 @@ void save_output()
 // post test attention
 void save_post_output()
 {
-    string fn = expdb.experiment.session.create_table("post_output", 1);
+    string fn = expdb.experiment.session.create_table("post_output", 7);
     post_output.append(fn, namespace_name + ": post attention results");
     post_output.size = 0;
 
-    fn = expdb.experiment.session.create_table("post_stim", 2);
+    fn = expdb.experiment.session.create_table("post_stim", 8);
     post_stim_output.append(fn, ": post stimulus table");
     post_stim_output.size = 0;
 }
