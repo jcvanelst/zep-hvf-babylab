@@ -5,23 +5,23 @@
 // familiarization phase. not to be used this HVF experiment
 
 const int  N_GRID_IMS                   = 4; // Number of visible grid images.
-                                             // Must be a value smaller then 9.
+                                             // Must be a value smaller than 9.
 const dur  INTER_GRID_DURATION          = 2s;// Time between update of 3*3 grid.
 const dur  ATTENTION_ISI                = 1000ms;
 
 // but we do want a pre-test (taken from HVF original)
 const real BEEP_FREQUENCY        		= 431; //330;
 const dur  BEEP_DURATION         		= 250ms;
+
 const real BEEP_VOLUME_RATIO     		= 0.25; // beep volume (1 = full loudness, 0 = inaudible)
 const dur  BEEP_ISI              		= 1000ms;
 const dur  PICTURE_SHOW_DURATION 		= 2000ms;
 
-//const dur  OVERALL_DURATION      = 24s;
-const int  NUM_VISIBLE_IMAGES    = 3;
-const int  NUM_PIC_PRESENTATION  = 4;
+// const int  NUM_VISIBLE_IMAGES    		= 3;
+const int  NUM_PIC_PRESENTATION  		= 12;
 
-const int  IM_WIDTH              = 450;
-const int  IM_HEIGHT             = 300;
+const int  IM_WIDTH			            = 450;
+const int  IM_HEIGHT             		= 300;
 
 //hvf ori
 //const dur LOOKAWAY_CONTINUES_THRESHOLD = 2s;
@@ -31,8 +31,8 @@ const dur INTERSOUND_INTERVAL          = 1s;
 // test/habituation phase.
 
 const dur  TEST_ISI                     = 1000ms;
-const int  MAX_HABITUATION_TRIALS	    = 25;
-const int  MAX_TEST_TRIALS              = 2;        // Max number of test trials
+const int  MAX_HABITUATION_TRIALS	    = 8;
+const int  MAX_TEST_TRIALS              = 8;        // Max number of test trials
                                                     // if <= 0 the number
                                                     // of test items.
 const int MAX_ATTENTION_TRIALS          = 1;        // max attention trials.

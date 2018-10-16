@@ -39,7 +39,7 @@ Block task
 
         hab_crit_met_pre = false;
         hab_crit_met_hab = false;
-        
+
         int ppid = int(control.ppid);
         if (ppid == 0 && expdb.experiment.status != EXP_STATUS_PREPARING) {
             print_error("Oops ppid == 0, did you enter a valid participant id?"
@@ -204,9 +204,9 @@ Block task
                 attention_page.action(this, reference_time, 0ms);
             }
 
-            // on_event:exit()
-            // {
-            // }
+            on_event:exit()
+            {
+            }
         }
 
         Trial trial
