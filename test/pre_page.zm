@@ -139,26 +139,6 @@ Page pre_page
         }
     }
 
-
-    // Key press doesn't work properly since the baby window is a output
-    // only window.
-    // on_event:key_press()
-    // {
-    //     if      (input_key == KEY_Shift_L)
-    //         response.process_hit(event_time, EVENT_STOP_LOOKING);
-    //     else if (input_key == KEY_Shift_R)
-    //         response.process_hit(event_time, EVENT_START_LOOKING);
-    //     else
-    //         handle_special_key(this, input_key, input_modifiers);
-    // }
-
-    // on_event:message()
-    // {
-    //     response.process_hit(event_time, message_arg);
-    // }
-
-
-
     VerticalLayout layout
     {
         on_event:init()

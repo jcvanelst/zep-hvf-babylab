@@ -259,6 +259,84 @@ Block task
                     habituation.leave();
             }
         }
+    
+
+    ///////////////////////////////////////////////////////////////////////////
+    ///////////// TEST ////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
+
+    Block test
+    {
+        //HabItem item; //= hab_items;//[0];//[habituation.cycle];
+
+        on_event:entry()
+        {
+            test_page.setup();
+ 
+            if (MAX_TEST_TRIALS <= 0)
+                num_cycles = test_items.size;
+            else
+                num_cycles = MAX_TEST_TRIALS;
+        }
+
+        on_event:exit()
+        {
+            save_test_output();
+        }
+
+
+        Trial grab_attention
+        {
+            on_event:entry()
+            {
+                attention_page.action(this, reference_time, 0ms);
+            }
+
+            on_event:exit()
+            {
+            }
+        }
+
+        Trial trial
+        {
+
+            on_event:entry()
+            {
+                // needs               
+                TestItem item = test_items[habituation.cycle];
+
+                test_page.action(
+                        this,
+                        reference_time,
+                        titem,
+                        habituation.cycle + 1
+                        );
+                task.current_trial++;
+                control.set_current_trial(task.current_trial);
+            }
+            
+            on_event:exit()
+            {
+                TestOutput output;
+
+                output.trialnum = habituation.cycle + 1;
+                output.lt       = int(hab_page.response.cumlt);
+                output.nlt      = int(hab_page.response.cumnlt);
+                output.looks    = hab_page.response.nlooks;
+                output.lookaways= hab_page.response.nlookaways;
+                output.phase    = PHASE_HAB;
+                output.crit_met = hab_crit_met_hab;
+
+                hab_output_append(output);
+                if (habituation_done_hab()) {
+                    /* Update last appended stimulus. Since the
+                     * criterion was met there.
+                     */
+                    hab_output[hab_output.size-1].crit_met = true;
+                    hab_crit_met_hab = true;
+                }
+            }
+
     }
 }
 

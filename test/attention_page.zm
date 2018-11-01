@@ -159,7 +159,7 @@ Page attention_page
     {
         target = caller;
         control.target = this;
-        control.set_status("grabber");
+        control.set_status("Attention grabber");
         tref = test_window1.show_test_page(this, tref + inter_stimulus);
         response.start (tref);
     }

@@ -1,8 +1,4 @@
-
-
 import sound_direction;
-//import std_baby_windows1;
-
 
 Page hab_page
 {
@@ -10,14 +6,11 @@ Page hab_page
     FaceItem    fitem;
 
     string hab_old_face = "";
-    string test_old_face = "";
 
-    int         nth_trial;      // the number of the current trial.
+    int nth_trial;      // the number of the current trial.
 
-    ///old hvf 
     int token_played_counter;  //max repetition stuff
 
-    //old hvf
     init()
     {
         fill_pattern_color = TEST_PAGE_COLOR;
