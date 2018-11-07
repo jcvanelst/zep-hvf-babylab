@@ -9,7 +9,7 @@ const dur  INTER_GRID_DURATION          = 2s;// Time between update of 3*3 grid.
 const dur  ATTENTION_ISI                = 1000ms;
 
 // but we do want a pre-test (taken from HVF original)
-const real BEEP_FREQUENCY        		= 330;
+const real BEEP_FREQUENCY        		= 431;
 const dur  BEEP_DURATION         		= 250ms;
 
 const real BEEP_VOLUME_RATIO     		= 0.25; // beep volume (1 = full loudness, 0 = inaudible)
