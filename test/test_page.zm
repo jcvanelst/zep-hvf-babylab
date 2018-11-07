@@ -2,12 +2,12 @@ import sound_direction;
 
 Page test_page
 {
-    TestItem    titem;           // trial control parameters
-    FaceItem    fitem;       // And 4 for tests
+    TestItem    titem;
+    FaceItem    fitem;
 
     string test_old_face = "";
     
-    int nth_trial;      // the number of the trial
+    int nth_trial;
 
     int token_played_counter;
 
@@ -72,7 +72,6 @@ Page test_page
             cumnlt      = 0ms;
             nlookaways  = 0;
             nlooks      = 1; // The infant is always looking at the start
-                             // of the trial.
         }
 
         void process_hit(time t, int event)
@@ -291,7 +290,7 @@ Page test_page
     {
         control.clear_status();
 
-        // Just in case; abort presentation if still active.
+        // Just in case; abort presentation
         layout.reset();
         audio.abort();
     }
@@ -333,9 +332,6 @@ Page test_page
         set_test_face(); 
 
         tref = test_window1.show_test_page(this, tref);
- 
-        // Show this page (if not yet done) and make tref the trial start time.
-        //tref = test_window1.show_test_page(this, tref);
         
         this.target = caller;
 

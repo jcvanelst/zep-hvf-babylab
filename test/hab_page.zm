@@ -59,7 +59,6 @@ Page hab_page
         {
             clear();
             lookstart = event_time;
-            // assume the child is looking.
             is_looking = true;
         }
 
@@ -71,14 +70,12 @@ Page hab_page
             cumlt       = 0ms;
             cumnlt      = 0ms;
             nlookaways  = 0;
-            nlooks      = 1; // The infant is always looking at the start
-                             // of the trial.
+            nlooks      = 1; 
         }
 
         void process_hit(time t, int event)
         {
             HitType validity = hit(t);
-            //println("Process hit: " + string(validity) + " " + event);
             
             if (validity == HIT_VALID) {
                 if (event == EVENT_STOP_LOOKING) { // start abort timer
@@ -140,7 +137,7 @@ Page hab_page
             {
                 on_event:start()
                 {
-                    println("Releasing clock.");
+                    //println("Releasing clock.");
                     control.release_clock(event_time);
                 }
 
@@ -268,20 +265,8 @@ Page hab_page
             hab_file_names[10] = hitem.sound11_filename;
             hab_file_names[11] = hitem.sound12_filename; 
 
-            hab_file_names.shuffle(1, -1); //we only shuffle the remaining 11 items, see .csv file examples
-
-            // println (">>> audio 0: " + hab_file_names[0]);
-            // println (">>> audio 1: " + hab_file_names[1]);
-            // println (">>> audio 2: " + hab_file_names[2]);
-            // println (">>> audio 3: " + hab_file_names[3]);  
-            // println (">>> audio 4: " + hab_file_names[4]);
-            // println (">>> audio 5: " + hab_file_names[5]);
-            // println (">>> audio 6: " + hab_file_names[6]);
-            // println (">>> audio 7: " + hab_file_names[7]);
-            // println (">>> audio 8: " + hab_file_names[8]);
-            // println (">>> audio 9: " + hab_file_names[9]);
-            // println (">>> audio10: " + hab_file_names[10]);
-            // println (">>> audio11: " + hab_file_names[11]);            
+            hab_file_names.shuffle(1, -1); //shuffle the remaining 11 items
+           
         }
     }
 

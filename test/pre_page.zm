@@ -31,24 +31,12 @@ Page pre_page
             nth_draw = 0;
         }
 
-        // void start_first_time()
-        // {
-        //     layout.show_new_pictures();
-        // }
-
-    //     on_event:expire()
-    //     {
-    //         layout.show_new_pictures();
-    //         start(expire_time + INTER_GRID_DURATION);
-    //     }
-    // }
         on_event:expire()
         {
             if (nth_draw < NUM_PIC_PRESENTATION) {
                 layout.show_new_pictures();
-                // start(expected_expire_time + PICTURE_SHOW_DURATION);
-                //start(expire_time + INTER_GRID_DURATION);/////////////////////////////////<-----
-                start(expire_time + INTER_GRID_DURATION);/////////////////////////////////<-----
+                //start(expire_time + INTER_GRID_DURATION);///////////////<-----
+                start(expire_time + INTER_GRID_DURATION);/////////////////<-----
 
                 nth_draw++;
             }
@@ -163,12 +151,6 @@ Page pre_page
                 size     = 900,900;//layout.width,layout.height;
                 offset_x = width /2;
                 offset_y = height/2;
-
-                // Hide the canvas frame
-                //fill_pattern_color = TEST_PAGE_COLOR;
-
-                // This puts the stimuli in a frame
-                //fill_pattern_color = TEST_PAGE_STIMULUS_COLOR;
                 
                 // Framecolor is the same color as background of images.
                 fill_pattern_color = rgbi:186/214/235;
@@ -412,7 +394,7 @@ Page pre_page
             output.trial    = nth_trial;
             output.tstart   = int(start_time - begin);
             output.tend     = int(finish_time - begin);
-            output.sound    = "beep" ;//clip.file;//NULL;    //'beep'; //clip.file;
+            output.sound    = "some beep";
             output.face     = "none";
 
             pre_stim_output_append(output);
@@ -474,8 +456,6 @@ Page pre_page
         layout.abort();
         audio.abort();
         signal_target(message);
-        //layout.reset();
-        //control.erase_clock();
         control.hide_speaker_icon(FRONT_SIDE | LEFT_SIDE | RIGHT_SIDE);
     }
 
@@ -494,7 +474,6 @@ Page pre_page
     void stop_grid()
     {
         control.erase_clock();
-        //control.erase_clock();
         layout.stop_grid();
     }
 
