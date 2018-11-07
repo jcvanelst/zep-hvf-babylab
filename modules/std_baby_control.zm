@@ -280,10 +280,14 @@ Page control
                 counter.offset_x = actual_width - 50;
                 counter.offset_y = 50;
 
-                counter_background.width = counter.offset_x - counter_active.offset_x + ( counter_active.radius * 2 ) + 5;
+                counter_background.width = counter.offset_x - 
+                            counter_active.offset_x + 
+                            ( counter_active.radius * 2 ) + 5;
                 counter_background.height = counter.line_height;
 
-                counter_background.offset_x = counter_active.offset_x - counter_active.radius - 5;
+                counter_background.offset_x = counter_active.offset_x - 
+                            counter_active.radius - 5;
+
                 counter_background.offset_y = counter.offset_y;
 
                 attention_cross.handle_resize();
@@ -467,9 +471,9 @@ Page control
                 on_event:init()
                 {
                     line_pattern_color = ATT_CROSS_COLOR;
-                    line_width = 5;
+                    line_width = 7;
                     is_visible = false;
-                    radius = real(canvas.actual_height)/20.0;
+                    radius = real(canvas.actual_height)/15.0;
                     //x = 0;
                     //y = 0;
                     rotation = 0;
@@ -478,7 +482,7 @@ Page control
                 void handle_resize()
                 {
                     // keep the cross in the lower left corner.
-                    radius = real(canvas.actual_height)/20.0;
+                    radius = real(canvas.actual_height)/15.0;
                     offset_x = radius * 2;
                     offset_y = canvas.actual_height - radius * 2;
                 }
@@ -1643,7 +1647,8 @@ Page control
             err = RECORD_LOCKED;
             if (verbose)
             {
-                ctrl_window.show_error("Selected participant record is locked.");
+                ctrl_window.show_error
+                    ("Selected participant record is locked.");
             }
         }
         if (!err)
