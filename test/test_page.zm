@@ -298,22 +298,7 @@ Page test_page
         test_old_face = test_face_items[n].face_filename;
     }
 
-    // select the picture to be used
-    // void set_hab_face() 
-    // { 
-    //     // select one    
-    //     int n = random(0, hab_face_items.size );
-    //     println(hab_face_items.size);
-    //     while (hab_face_items[n].face_filename == hab_old_face)
-    //     {
-    //         n = random(0, hab_face_items.size);         
-    //     }
-    //     fitem = hab_face_items[n];
-    //     hab_old_face = hab_face_items[n].face_filename;
-    // }
-
-                              
-
+                    
     // Starts a hab trial.
     time action(Object      caller, 
                 time        tref, 

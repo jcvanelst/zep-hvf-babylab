@@ -254,7 +254,7 @@ Block task
         }
 
         // Tests whether the habituation criterion is met.
-        TransientPart test_hab_done
+        TransientPart hab_hab_done
         {
             on_event:entry()
             {
@@ -341,7 +341,17 @@ Block task
                 }
             }
         }
-    }
+
+        // Tests whether the habituation criterion is met.
+        TransientPart test_hab_done
+        {
+            on_event:entry()
+            {
+                if (habituation_done_test())
+                    test.leave();
+            }
+        }
+    } 
 }
 
 

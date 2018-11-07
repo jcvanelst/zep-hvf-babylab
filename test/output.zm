@@ -30,7 +30,8 @@ record StimOutput
     int     trial;      // the trial
     int     tstart;     // time start of the stimulus
     int     tend;       // time end of the stimulus
-    string  stimulus;   // the name of the stimulus
+    string  sound;      // the name of the sound file
+    string  face;       // name of the face
 }
 
 TestOutput[..] pre_output;
