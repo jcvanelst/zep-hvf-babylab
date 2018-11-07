@@ -192,6 +192,18 @@ Page test_page
         on_event:finish()
         {
             control.hide_speaker_icon(FRONT_SIDE);
+
+            StimOutput output;
+
+            time begin      = zero_time();
+            output.trial    = nth_trial;
+            output.tstart   = int(start_time - begin);
+            output.tend     = int(finish_time - begin);
+            output.sound    = clip.file;
+            output.face     = fitem.face_filename;
+
+            stim_output_append(output);
+            
             if(!check_if_we_are_done(event_time))
                 this.play(
                         event_time + INTERSOUND_INTERVAL,
