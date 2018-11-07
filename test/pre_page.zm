@@ -138,7 +138,6 @@ Page pre_page
 
         on_event:start()
         {
-            println("pre_page: Releasing clock");
             control.release_clock(event_time);
         }
 

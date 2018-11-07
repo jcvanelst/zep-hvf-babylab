@@ -113,8 +113,6 @@ Page hab_page
         }
     }
 
-    // old hvf code: image and (max) sound repetition
-
     VerticalLayout layout
     {
         init()
@@ -137,7 +135,6 @@ Page hab_page
             {
                 on_event:start()
                 {
-                    //println("Releasing clock.");
                     control.release_clock(event_time);
                 }
 
@@ -202,7 +199,6 @@ Page hab_page
             output.tend     = int(finish_time - begin);
             output.sound    = clip.file;
             output.face     = fitem.face_filename;
-            //output.stimulus = clip.file;
 
             hab_stim_output_append(output);
             
@@ -302,7 +298,7 @@ Page hab_page
     { 
         // select one    
         int n = random(0, hab_face_items.size );
-        println(hab_face_items.size);
+
         while (hab_face_items[n].face_filename == hab_old_face)
         {
             n = random(0, hab_face_items.size);         

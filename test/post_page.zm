@@ -138,7 +138,6 @@ Page post_page
 
         on_event:start()
         {
-            println("post_page: Releasing clock");
             control.release_clock(event_time);
         }
 

@@ -136,7 +136,6 @@ Page test_page
             {
                 on_event:start()
                 {
-                    println("Releasing clock.");
                     control.release_clock(event_time);
                 }
 
@@ -300,7 +299,7 @@ Page test_page
     { 
         // select one    
         int n = random(0, test_face_items.size);
-        println(test_face_items.size);
+        
         while (test_face_items[n].face_filename == test_old_face)
         {
             n = random(0, test_face_items.size);         
@@ -353,4 +352,3 @@ Page test_page
         return tref;
     }
 }
-

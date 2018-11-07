@@ -67,12 +67,7 @@ Block task
     {
         on_event:entry()
         {
-            // attention_page.setup(); // att grabber page
-            //attention_page.action;
-            //pre_page.setup();
             num_cycles = NUM_PIC_PRESENTATION;
-            //pre_attention.num_cycles = NUM_PIC_PRESENTATION;
-            println(num_cycles);
             pre_page.start_grid(event_time);
         }
 
@@ -83,13 +78,10 @@ Block task
         }
 
         // Run the attention getter once before the first trial.
-        // skip in all other cases.
         TransientPart skip_attention
         {
             on_event:entry()
             {
-                println("pre_attention cycle:");
-                println(pre_attention.cycle);
                 if (pre_attention.cycle == 0) {
                     grab_attention.enter();
                 }
@@ -118,14 +110,11 @@ Block task
         {
             on_event:entry()
             {
-                //PreItem item = pre_items[pre_attention.cycle];
                 pre_attention.num_cycles = NUM_PIC_PRESENTATION;
                 bool is_last = pre_attention.cycle == 
                                                 pre_attention.num_cycles - 1;
                 bool is_first = pre_attention.cycle == 0;
-                
-                println("--------------------");
-                println (pre_attention.cycle);
+
                 if (pre_attention.cycle == 0) // start right after attention
                     pre_page.action(
                             this,
@@ -144,7 +133,6 @@ Block task
 
             on_event:exit()
             {   
-                //pre_page.stop_grid();//not this one
                 TestOutput output;//PreOutput output;
 
                 output.trialnum = pre_attention.cycle + 1;
@@ -356,12 +344,7 @@ Block task
     {
         on_event:entry()
         {
-            // attention_page.setup(); // att grabber page
-            //attention_page.action;
-            //pre_page.setup();
             num_cycles = NUM_PIC_PRESENTATION;
-            //pre_attention.num_cycles = NUM_PIC_PRESENTATION;
-            //println(num_cycles);
             pre_page.start_grid(event_time);
         }
 
@@ -377,8 +360,6 @@ Block task
         {
             on_event:entry()
             {
-                println("post-attention cycle:");
-                println(post_attention.cycle);
                 if (post_attention.cycle == 0) {
                     grab_attention.enter();
                 }
@@ -412,9 +393,7 @@ Block task
                 bool is_last = post_attention.cycle == 
                                                 post_attention.num_cycles - 1;
                 bool is_first = post_attention.cycle == 0;
-                
-                println("--------------------");
-                println (post_attention.cycle);
+
                 if (post_attention.cycle == 0) // start right after attention
                     post_page.action(
                             this,
