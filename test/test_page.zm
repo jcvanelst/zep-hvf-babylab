@@ -3,7 +3,7 @@ import sound_direction;
 Page test_page
 {
     TestItem    titem;           // trial control parameters
-    FaceItem    tfaceitem;       // And 4 for tests
+    FaceItem    fitem;       // And 4 for tests
 
     string test_old_face = "";
     
@@ -203,8 +203,8 @@ Page test_page
         {
             this.playback.device = sound_output_device;
             this.clip.file = stimuli_dir() + "sounds/" + 
-                             test_audio.file_names[0];
-            first_to_last_shift(file_names);
+                             audio.test_file_names[0];
+            first_to_last_shift(test_file_names);
 
             // mute all channels.
             playback.set_scaling(0.0);
@@ -237,9 +237,9 @@ Page test_page
         {
             audio.abort();
 
-            file_names.size = 2;
-            file_names[0] = titem.sound1_filename;
-            file_names[1] = titem.sound2_filename;
+            test_file_names.size = 2;
+            test_file_names[0] = titem.sound1_filename;
+            test_file_names[1] = titem.sound2_filename;
         }
 
         void first_to_last_shift(string[] array)
@@ -294,9 +294,24 @@ Page test_page
         {
             n = random(0, test_face_items.size);         
         }
-        tfaceitem = test_face_items[n];
+        fitem = test_face_items[n];
         test_old_face = test_face_items[n].face_filename;
     }
+
+    // select the picture to be used
+    // void set_hab_face() 
+    // { 
+    //     // select one    
+    //     int n = random(0, hab_face_items.size );
+    //     println(hab_face_items.size);
+    //     while (hab_face_items[n].face_filename == hab_old_face)
+    //     {
+    //         n = random(0, hab_face_items.size);         
+    //     }
+    //     fitem = hab_face_items[n];
+    //     hab_old_face = hab_face_items[n].face_filename;
+    // }
+
                               
 
     // Starts a hab trial.
@@ -334,13 +349,13 @@ Page test_page
         //wait for responses
         response.start(tref);
 
-        tref = layout.canvas.start_picture(tref, titem.test_face_filename);
+        tref = layout.canvas.start_picture(tref, fitem.face_filename);
         tref = audio.play(tref, SND_DIRECTION_FRONT);//only front speaker
         control.target = this;
 
         // Update status line on control window. Cleared in done() above.
         control.set_status("test phase" + string(titem.id) + "  " + 
-            string(titem.test_face_filename));
+            string(fitem.face_filename));
 
         return tref;
     }
