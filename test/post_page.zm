@@ -3,7 +3,7 @@ import sound_direction;
 // these mark a image location on the grid.
 int[..] grid_indices = {1, 2, 3, 4, 5, 6, 7, 8, 9};
 
-Page pre_page
+Page post_page
 {
     //PreItem     item;           // the currently presented item.
     int         nth_trial;      // the number of the current trial.
@@ -138,7 +138,7 @@ Page pre_page
 
         on_event:start()
         {
-            println("pre_page: Releasing clock");
+            println("post_page: Releasing clock");
             control.release_clock(event_time);
         }
 
@@ -397,7 +397,7 @@ Page pre_page
             output.sound    = "some beep";
             output.face     = "none";
 
-            pre_stim_output_append(output);
+            post_stim_output_append(output);
             if (is_last) {
                 response.process_hit(event_time, EVENT_STOP);
                 response.abort();
@@ -443,9 +443,6 @@ Page pre_page
             beep.fade_in_duration  = 5ms;
             beep.fade_out_duration = 5ms;
 
-            //clip.file = stimuli_dir() + "sounds/ae-E continua/" + fn;
-            //clip.file              = "beep";
-
             start (t);
             return expected_start_time;
         }
@@ -490,7 +487,7 @@ Page pre_page
         this.target    = caller;
 
         time audio_onset = audio.play(tref, SND_DIRECTION_FRONT);
-        control.set_status("PRE-test");
+        control.set_status("POST-test");
 
         if(first)
         {

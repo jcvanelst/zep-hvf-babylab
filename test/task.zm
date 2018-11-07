@@ -354,6 +354,125 @@ Block task
 }
 
 
+// post test attention
+
+Block post_attention //
+    {
+        on_event:entry()
+        {
+            // attention_page.setup(); // att grabber page
+            //attention_page.action;
+            //pre_page.setup();
+            num_cycles = NUM_PIC_PRESENTATION;
+            //pre_attention.num_cycles = NUM_PIC_PRESENTATION;
+            //println(num_cycles);
+            pre_page.start_grid(event_time);
+        }
+
+        on_event:exit()
+        {
+            post_page.stop_grid();
+            save_post_output();
+        }
+
+        // Run the attention getter once before the first trial.
+        // skip in all other cases.
+        TransientPart skip_attention
+        {
+            on_event:entry()
+            {
+                println("post-attention cycle:");
+                println(post_attention.cycle);
+                if (post_attention.cycle == 0) {
+                    grab_attention.enter();
+                }
+                else {
+                    trial.enter();
+                }
+            }
+        }
+        
+        Trial grab_attention
+        {
+            on_event:entry()
+            {
+                attention_page.setup();
+                attention_page.action(this, reference_time, 0ms);
+            }
+
+            on_event:exit()
+            {
+                attention_page.layout.stop_playing();
+                trial.reference_time = post_page.start_grid(now());
+            }
+        }
+        
+        Trial trial
+        {
+            on_event:entry()
+            {
+                //PreItem item = pre_items[pre_attention.cycle];
+                post_attention.num_cycles = NUM_PIC_PRESENTATION;
+                bool is_last = post_attention.cycle == 
+                                                post_attention.num_cycles - 1;
+                bool is_first = post_attention.cycle == 0;
+                
+                println("--------------------");
+                println (post_attention.cycle);
+                if (post_attention.cycle == 0) // start right after attention
+                    post_page.action(
+                            this,
+                            reference_time,
+                            is_last,
+                            is_first
+                            );
+                else // start after isi.
+                    post_page.action(
+                        this,
+                        reference_time + ATTENTION_ISI,
+                        is_last,
+                        is_first
+                        );
+            }
+
+            on_event:exit()
+            {   
+                //pre_page.stop_grid();//not this one
+                TestOutput output;//PreOutput output;
+
+                output.trialnum = post_attention.cycle + 1;
+
+               if(post_page.is_last) // report final
+                {
+                    output.lt       = int(post_page.response.cumlt);
+                    output.nlt      = int(post_page.response.cumnlt);
+                }
+                else
+                {
+                    if(post_page.response.is_looking)
+                    {
+                        output.lt = int(post_page.response.cumlt 
+                                + (event_time - post_page.response.lookstart) );
+                        output.nlt = int(post_page.response.cumnlt);
+                    }
+                    else // !fam_page.response_is_looking
+                    {
+                        output.lt = int(post_page.response.cumlt);
+                        output.nlt = int(post_page.response.cumnlt
+                            + (event_time - post_page.response.nolookstart) );
+                    }
+                }
+                
+                output.looks    = post_page.response.nlooks;
+                output.lookaways= post_page.response.nlookaways;
+                output.phase    = PHASE_POST_ATTENTION;
+                output.crit_met = hab_crit_met_post;//
+
+                post_output_append (output);
+            }
+        }
+    }
+
 void action (Part caller)
 {    
     task.enter(caller);
