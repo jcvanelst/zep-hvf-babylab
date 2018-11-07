@@ -85,33 +85,6 @@ record KeyCodeMapping
 }
 
 
-/*
-// Record for storing global experiment settings.
-record ExperimentSettings
-{
-    // Experiment version.
-    int         experiment_version;
-
-    // Database id. Any alphanumeric identifier is OK (typically set to "01").
-    string      database_id;
-
-    // ID of default researcher.
-    string      default_researcher_id;
-
-    // Whether experiment record, researcher record and group record should
-    // be checked out for updating (true) or reading only (false) during the
-    // experiment session. The participant record and experiment session
-    // record are always checked out for updating.
-    bool        experiment_record_updateable;
-    bool        researcher_record_updateable;
-    bool        group_record_updateable;
-
-    // Controls whether the assigned group is shown in the control window.
-    bool        show_assigned_group;
-}
-*/
-
-
 Page control
 {
     ControlState state;         // experiment control state (see above)

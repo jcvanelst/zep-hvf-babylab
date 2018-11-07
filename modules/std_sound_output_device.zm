@@ -24,7 +24,7 @@ SoundPlaybackDevice sound_output_device
     init()
     {
         //num_channels = PLAYBACK_NUM_CHANNELS;
-        num_channels = 2; // 4 in production
+        num_channels = 2; // 4 in production //TODO
         samplerate = PLAYBACK_SAMPLE_RATE;
         buffer_size = PLAYBACK_BUFFER_SIZE;
 //      device_num = 0;
