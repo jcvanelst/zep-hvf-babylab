@@ -11,15 +11,17 @@ import attention_page;
 import pre_page;
 import hab_page;
 import test_page;
-//import post_page;
+import post_page;
 
 
 Block task
 {
-    int hab_crit_met_pre;
+    int hab_crit_met_pre;     //<------------ PRE     TOP
     
-    int hab_crit_met_hab;
-    int hab_crit_met_test;
+    int hab_crit_met_hab;     //              HAB      BURGER
+    int hab_crit_met_test;    //              TEST     PICKLE
+
+    int hab_crit_met_post;    //<-------------POST     BOTTOM
     
     int ppid;
     int current_trial;
@@ -182,7 +184,6 @@ Block task
 
     Block habituation
     {
-        //HabItem item; //= hab_items;//[0];//[habituation.cycle];
 
         on_event:entry()
         {
@@ -264,10 +265,7 @@ Block task
         }
     } 
     
-
-    ///////////////////////////////////////////////////////////////////////////
-    ///////////// TEST ////////////////////////////////////////////////////////
-
+    //--------- Testing with pairs -----------
 
     Block test
     {
@@ -350,13 +348,11 @@ Block task
                     test.leave();
             }
         }
-    } 
-}
+    }
 
+    //---------- Post test attention ------------------
 
-// post test attention
-
-Block post_attention //
+    Block post_attention //
     {
         on_event:entry()
         {
@@ -472,6 +468,8 @@ Block post_attention //
             }
         }
     }
+}
+
 
 void action (Part caller)
 {    
