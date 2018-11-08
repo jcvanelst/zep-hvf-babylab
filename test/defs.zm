@@ -16,7 +16,9 @@ const real BEEP_VOLUME_RATIO     		= 0.25; // beep volume (1 = full loudness, 0 
 const dur  BEEP_ISI              		= 1000ms;
 const dur  PICTURE_SHOW_DURATION 		= 2000ms;
 
-const int  NUM_PIC_PRESENTATION  		= 12;
+const int  NUM_PIC_PRESENTATION  		= 20; //doel: post/pre duurt 24-25 seconden: 
+											//beep + isi = 1250ms
+											//20 * 1250 = 25000ms = 25 seconden
 
 const int  IM_WIDTH			            = 450;
 const int  IM_HEIGHT             		= 300;
