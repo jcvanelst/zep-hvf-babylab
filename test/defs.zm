@@ -31,8 +31,8 @@ const dur INTERSOUND_INTERVAL          = 1s;
 // test/habituation phase.
 
 const dur  TEST_ISI                     = 1000ms;
-const int  MAX_HABITUATION_TRIALS	    = 15;
-const int  MAX_TEST_TRIALS              = 8;        // Max number of test trials
+const int  MAX_HABITUATION_TRIALS	    = 12;
+const int  MAX_TEST_TRIALS              = 12;       // Max number of test trials
                                                     // if <= 0 the number
                                                     // of test items.
 const int MAX_ATTENTION_TRIALS          = 1;        // max attention trials.
