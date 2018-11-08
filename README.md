@@ -52,8 +52,8 @@ mean ('feep' as example):
  a single type. Or, in fact, they could be any sequence of 12 audio stimulus 
  files the researcher may want to present in a habituation trial.
 
-- **Tokentuple** : a unique instance of a tokensequence, that is, a pair (2!) of 
-sounds that defines a unique unit, currently only within a 'real' test (post 
+- **Tokenpair** : a special instance of a tokensequence, that is, a pair (2!) of 
+sounds that defines a unique sub trial unit, currently only within a 'real' test (post 
 habituation phase) trial.
 
 - **Trial**: in the HVF experiment, a trial's start and end is defined by 
@@ -65,12 +65,12 @@ a (configurable) period (default is two seconds), a new trial is started.
 	- As soon as tokens in a trial's token sequence have been repeated a 
 	(configurable) maximum amount, the trial ends. In the habituation phase,
 	this means each sequence of 12 can be played a maximum of three times. In 
-	the tetsing phase (tokentuples, hence 2 tokens), this means that eacht tuple
-	can be repeated a maximum of 18 times. 
+	the testing phase (tokenpairs), this means that eacht pair can be repeated 
+	a maximum of 18 times. 
+
 During a trial, a single image (visual) is always accompanied by an amount of 
 speech sounds. In the multiple speaker vesion, this means that one image is 
 being viewed, while clearly different voices are being played. 
-
 
 # Input
 The `stimuli` directory contains are csv files which are used for the fixation
@@ -115,8 +115,8 @@ speaker_mutiple_single     | Wether mutiple speakers or one single speaker is 'r
 
 # CSV file names and contents in relation to the current experiment goal
 
-Each file name needs to be in a test or a habituation version (prefix: 'hab_'
-or 'test_').Examples are: `test_native_alt_A1.csv` or 
+Each file name needs to be in the form of a "test" or a "hab" format (prefix: 'hab_'
+or 'test_'). Examples are: `test_native_alt_A1.csv` or 
 `hab_native_nalt_B2_sspeaker.csv`. *Test type* csv files contain two sounds 
 that are contrasted, *habituation type* files contain a sequence of 12 tokens. 
 In our current operationalization, the "not on first token alternating" only 
@@ -130,7 +130,7 @@ and 12.
 A naming convention has been introduced in order to work towards a more generic 
 way of using and reusing this type of experiment.
 
-The new format for naming stimuli becomes:
+The format for naming stimuli becomes:
 
 Speaker*speakerID*\_*type*\_*token*
 
@@ -248,20 +248,18 @@ id | sound 1    			      | sound 2   			      | extra (not in .csv)
 One can get output by running `zepdbextract` in the experiment directory.
 This generates the following tables.
 
-*Every look*
-* hvf-01-pre_test_attention-1.csv
-* hvf-01-habituation-2.csv
-* hvf-01-test-3.csv
-* hvf-01-post_test_attention-4.csv
+*Regular output* (data useful for regular 'bulk' analysis within the paradigmn, info summised per trial)
+hvf-01-pre_output-1.csv
+hvf-01-hab_output-3.csv
+hvf-01-test_output-5.csv
+hvf-01-post_output-7.csv
 
-*Every look collapsed/summised per trial*
-* hvf-01-summary_habituation-2.csv
-* hvf-01-summary_post_test_attention-4.csv
-* hvf-01-summary_pre_test_attention-1.csv
-* hvf-01-summary_test-3.csv
+*Stimulus based output* (if you want to check what stimulus was administered, etc.) 
+hvf-01-pre_stim-2.csv
+hvf-01-hab_stim-4.csv
+hvf-01-test_stim-6.csv
+hvf-01-post_stim-8.csv
 
-*Inclusion criteria per particpant (minimum habituation and minimum attention)*
-* hvf-01-inclusion_variable_summary-1.csv
 
 # Requirements
 - Zep installed. (From [here](http://beexy.org/zep/wiki/doku.php?id=download)
