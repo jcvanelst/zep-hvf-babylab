@@ -1,14 +1,4 @@
 
-//ori mja
-// enum ItemType
-// {
-//     FAMILIARISATION,    // Stimulus from fam phase
-//     HABITUATION,        // Stimulus from habituation phase
-//     NOVEL,              // Stimulus from test phase
-//     ATTENTION           // Stimulus to check the infants 
-// }
-
-//new plan
 plugin zep_file;
 
 
@@ -21,22 +11,6 @@ enum ItemType
     //POST_ATTENTION
 }
 
-// record TestItem
-// {
-//     int         id;         // The id of the trial.
-//     ItemType    type;       // What type of stimulus is presented.
-//     string      snd_fn;     // Which stimulus is presented.
-// }
-
-// record PreItem {
-//     int             id; 
-//     ItemType        type;
-// }
-
-// record PostItem {
-//     int             id; 
-//     ItemType        type;
-// }
 
 record TestItem {
 
@@ -115,29 +89,29 @@ string[..] grid_images = {
     "stimuli/images/zebra-small.png"
 };
 
-string[..] video_frames = {
-    "stimuli/movies/frame000.png",
-    "stimuli/movies/frame001.png",
-    "stimuli/movies/frame002.png",
-    "stimuli/movies/frame003.png",
-    "stimuli/movies/frame004.png",
-    "stimuli/movies/frame005.png",
-    "stimuli/movies/frame006.png",
-    "stimuli/movies/frame007.png",
-    "stimuli/movies/frame008.png",
-    "stimuli/movies/frame009.png",
-    "stimuli/movies/frame010.png",
-    "stimuli/movies/frame011.png",
-    "stimuli/movies/frame012.png",
-    "stimuli/movies/frame013.png",
-    "stimuli/movies/frame014.png",
-    "stimuli/movies/frame015.png",
-    "stimuli/movies/frame016.png",
-    "stimuli/movies/frame017.png",
-    "stimuli/movies/frame018.png",
-    "stimuli/movies/frame019.png",
-    "stimuli/movies/frame020.png",
-};
+// string[..] video_frames = {
+//     "stimuli/movies/frame000.png",
+//     "stimuli/movies/frame001.png",
+//     "stimuli/movies/frame002.png",
+//     "stimuli/movies/frame003.png",
+//     "stimuli/movies/frame004.png",
+//     "stimuli/movies/frame005.png",
+//     "stimuli/movies/frame006.png",
+//     "stimuli/movies/frame007.png",
+//     "stimuli/movies/frame008.png",
+//     "stimuli/movies/frame009.png",
+//     "stimuli/movies/frame010.png",
+//     "stimuli/movies/frame011.png",
+//     "stimuli/movies/frame012.png",
+//     "stimuli/movies/frame013.png",
+//     "stimuli/movies/frame014.png",
+//     "stimuli/movies/frame015.png",
+//     "stimuli/movies/frame016.png",
+//     "stimuli/movies/frame017.png",
+//     "stimuli/movies/frame018.png",
+//     "stimuli/movies/frame019.png",
+//     "stimuli/movies/frame020.png",
+// };
 
 int movie_frame_index   = 0;
 int movie_frame_inc     = 1;
@@ -199,10 +173,10 @@ string[..] movie2_frames =
     "movies/movie2/frame024.png",
 };
 
-string next_movie_stim()
+string next_movie_stim(string [] movieframes)
 {
-    string ret = stimuli_dir() + movie1_frames[movie_frame_index];
-    if (movie_frame_index == movie1_frames.size - 1 && movie_frame_inc != -1)
+    string ret = stimuli_dir() + movieframes[movie_frame_index];
+    if (movie_frame_index == movieframes.size - 1 && movie_frame_inc != -1)
         movie_frame_inc = -1;
     else if(movie_frame_index == 0 && movie_frame_inc != 1)
         movie_frame_inc = 1;
@@ -215,6 +189,9 @@ void reset_movie_stims()
     movie_frame_index = 0;
     movie_frame_inc   = 1;
 }
+
+////////////// different movies, the easiest way.......
+
 
 //************** LOADING AND CHECKING STIMULI *******************************//
 

@@ -3,6 +3,7 @@ import defs;
 
 Page attention_page
 {
+    string[] movielist;
 
     // shows a movie by presenting multiple frames after each other.
     // it uses a "front" and "backbuffer" not in a hardware accelerated
@@ -62,7 +63,7 @@ Page attention_page
                 {
                     is_playing = true;
                     backbuffer.abort();
-                    backbuffer.load(next_movie_stim());
+                    backbuffer.load(next_movie_stim(movielist));
                     backbuffer.start(event_time + INTER_MOVIE_STIM_DUR,
                                      INTER_MOVIE_STIM_DUR
                                      );
@@ -84,7 +85,7 @@ Page attention_page
                 {
                     is_playing = true;
                     frontbuffer.abort();
-                    frontbuffer.load(next_movie_stim());
+                    frontbuffer.load(next_movie_stim(movielist));
                     frontbuffer.start(event_time + INTER_MOVIE_STIM_DUR,
                                       INTER_MOVIE_STIM_DUR);
                 }
@@ -148,10 +149,11 @@ Page attention_page
         control.clear_attention_grabber_cross();
     }
 
-    void setup()
+    void setup(string[] movielist)
     {
+        this.movielist = movielist;
         reset_movie_stims();
-        layout.canvas.frontbuffer.load(next_movie_stim());
+        layout.canvas.frontbuffer.load(next_movie_stim(movielist));
     }
 
     void action(Part caller, time tref, dur inter_stimulus)

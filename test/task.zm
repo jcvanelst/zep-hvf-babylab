@@ -95,7 +95,7 @@ Block task
         {
             on_event:entry()
             {
-                attention_page.setup();
+                attention_page.setup(movie1_frames);
                 attention_page.action(this, reference_time, 0ms);
             }
 
@@ -175,7 +175,7 @@ Block task
 
         on_event:entry()
         {
-            attention_page.setup();
+            attention_page.setup(movie1_frames);
  
             if (MAX_HABITUATION_TRIALS <= 0)
                 num_cycles = hab_items.size;
@@ -260,7 +260,7 @@ Block task
 
         on_event:entry()
         {
-            attention_page.setup();
+            attention_page.setup(movie2_frames);
  
             if (MAX_TEST_TRIALS <= 0)
                 num_cycles = test_items.size;
@@ -373,7 +373,7 @@ Block task
         {
             on_event:entry()
             {
-                attention_page.setup();
+                attention_page.setup(movie2_frames);
                 attention_page.action(this, reference_time, 0ms);
             }
 
