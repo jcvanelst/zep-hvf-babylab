@@ -42,8 +42,10 @@ Block task
         control.button_box.enable_button(int(BUTTON_RIGHT),
                                         EVENT_START_LOOKING);
 
-        hab_crit_met_pre = false;
-        hab_crit_met_hab = false;
+        hab_crit_met_pre    = false;
+        hab_crit_met_hab    = false;
+        hab_crit_met_test   = false;
+        hab_crit_met_post   = false;
 
         int ppid = int(control.ppid);
         if (ppid == 0 && expdb.experiment.status != EXP_STATUS_PREPARING) {
@@ -164,6 +166,14 @@ Block task
                 output.crit_met = hab_crit_met_pre;//
 
                 pre_output_append (output);
+
+                if (habituation_done_pre()) {
+                    /* Update last appended stimulus. Since the
+                     * criterion was met there.
+                     */
+                    pre_output[pre_output.size-1].crit_met = true;
+                    hab_crit_met_pre = true;
+                }
             }
         }
     }
@@ -436,6 +446,14 @@ Block task
                 output.crit_met = hab_crit_met_post;//
 
                 post_output_append (output);
+
+                if (habituation_done_post()) {
+                    /* Update last appended stimulus. Since the
+                     * criterion was met there.
+                     */
+                    post_output[post_output.size-1].crit_met = true;
+                    hab_crit_met_post = true;
+                }
             }
         }
     }

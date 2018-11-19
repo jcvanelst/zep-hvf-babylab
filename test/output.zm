@@ -151,6 +151,22 @@ void save_post_output()
     post_stim_output.size = 0;
 }
 
+bool habituation_done_pre()
+{
+    if (pre_output.size < 6)
+        return false;
+
+    real mean_first3 = (pre_output[0].lt +
+                        pre_output[1].lt +
+                        pre_output[2].lt ) / 3;
+
+    real mean_last3  = (pre_output[pre_output.size - 3].lt +
+                        pre_output[pre_output.size - 2].lt +
+                        pre_output[pre_output.size - 1].lt ) / 3;
+
+    return mean_first3 * PREPOST_HAB_CRITERION > mean_last3;
+}
+
 // is called from task.zm to check whether the infant has habituated.
 bool habituation_done_hab()
 {
@@ -185,6 +201,21 @@ bool habituation_done_test()
     return mean_first3 * HABITUATION_CRITERION > mean_last3;
 }  
 
+bool habituation_done_post()
+{
+    if (hab_output.size < 6)
+        return false;
+
+    real mean_first3 = (post_output[0].lt +
+                        post_output[1].lt +
+                        post_output[2].lt ) / 3;
+
+    real mean_last3  = (post_output[post_output.size - 3].lt +
+                        post_output[post_output.size - 2].lt +
+                        post_output[post_output.size - 1].lt ) / 3;
+
+    return mean_first3 * PREPOST_HAB_CRITERION > mean_last3;
+}
 void stim_output_append(StimOutput output)
 {
     test_stim_output.size = test_stim_output.size + 1;
