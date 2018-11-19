@@ -335,6 +335,7 @@ Page pre_page
         {
             show_new_pictures();
             start(t);
+            grid_timer.abort();
             grid_timer.start(t + INTER_GRID_DURATION);
             return expected_start_time;
         }
