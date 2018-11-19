@@ -230,6 +230,7 @@ Block task
                 output.lookaways= hab_page.response.nlookaways;
                 output.phase    = PHASE_HAB;
                 output.crit_met = hab_crit_met_hab;
+                output.alt_type = 999; //testing: N/A here
 
                 hab_output_append(output);
                 if (habituation_done_hab()) {
@@ -298,8 +299,8 @@ Block task
                         this,
                         reference_time,
                         titem,
-                        test.cycle + 1
-                        );
+                        test.cycle + 1,
+                        999);
                 task.current_trial++;
                 control.set_current_trial(task.current_trial);
             }
@@ -315,6 +316,7 @@ Block task
                 output.lookaways= test_page.response.nlookaways;
                 output.phase    = PHASE_TEST;
                 output.crit_met = hab_crit_met_test;
+                output.alt_type = test_page.audio.alt_type;
 
                 output_append(output);
                 if (habituation_done_test()) {

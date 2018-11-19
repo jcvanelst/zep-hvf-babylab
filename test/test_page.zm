@@ -11,6 +11,8 @@ Page test_page
 
     int token_played_counter;
 
+    int alt_type;
+
     init()
     {
         fill_pattern_color = TEST_PAGE_COLOR;
@@ -54,6 +56,7 @@ Page test_page
         dur     cumnlt;
         int     nlookaways;
         int     nlooks;
+        int     alt_type;
 
         on_event:start()
         {
@@ -65,13 +68,14 @@ Page test_page
 
         void clear()
         {
-            is_looking  = true;
-            lookstart   = time(0);
-            nolookstart = time(0);
-            cumlt       = 0ms;
-            cumnlt      = 0ms;
-            nlookaways  = 0;
-            nlooks      = 1; // The infant is always looking at the start
+            is_looking          = true;
+            lookstart           = time(0);
+            nolookstart         = time(0);
+            cumlt               = 0ms;
+            cumnlt              = 0ms;
+            nlookaways          = 0;
+            nlooks              = 1; // The infant is always looking at the start
+            alt_type            = 999; // default is some stupid value, test 
         }
 
         void process_hit(time t, int event)
@@ -178,6 +182,8 @@ Page test_page
 
         int snd_index = 0;
 
+        int alt_type = 999;
+
         SoundFile clip {}
      
         SoundPlayback playback {}
@@ -250,6 +256,20 @@ Page test_page
             test_file_names.size = 2;
             test_file_names[0] = titem.sound1_filename;
             test_file_names[1] = titem.sound2_filename;
+
+            println (titem.sound1_filename + '\n');
+            println (titem.sound2_filename + '\n');
+
+            // if the sounds are not identical, we write a 1 (alternating)
+            // in all other cases, 0 (non-alternating or not applicable)
+            if (test_file_names[0] == test_file_names[1]){
+                alt_type = 0;
+                println ("stimuli are identical");
+            }
+            if (test_file_names[0] != test_file_names[1]){
+                alt_type = 1;
+                println ("stimuli are ALTERNATING");
+            }
         }
 
         void first_to_last_shift(string[] array)
@@ -309,11 +329,12 @@ Page test_page
     }
 
                     
-    // Starts a hab trial.
+    // Starts a test trial.
     time action(Object      caller, 
                 time        tref, 
                 TestItem    it,
-                int         trial_num
+                int         trial_num,
+                int         alt_type
                 )
     {
 

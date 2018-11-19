@@ -11,6 +11,8 @@ Page hab_page
 
     int token_played_counter;  //max repetition stuff
 
+    int alt_type;
+
     init()
     {
         fill_pattern_color = TEST_PAGE_COLOR;
@@ -54,23 +56,26 @@ Page hab_page
         dur     cumnlt;
         int     nlookaways;
         int     nlooks;
+        int     alt_type;
 
         on_event:start()
         {
             clear();
-            lookstart = event_time;
-            is_looking = true;
+            lookstart           = event_time;
+            is_looking          = true;
+            alt_type            = 999;
         }
 
         void clear()
         {
-            is_looking  = true;
-            lookstart   = time(0);
-            nolookstart = time(0);
-            cumlt       = 0ms;
-            cumnlt      = 0ms;
-            nlookaways  = 0;
-            nlooks      = 1; 
+            is_looking          = true;
+            lookstart           = time(0);
+            nolookstart         = time(0);
+            cumlt               = 0ms;
+            cumnlt              = 0ms;
+            nlookaways          = 0;
+            nlooks              = 1; 
+            alt_type            = 999;
         }
 
         void process_hit(time t, int event)
@@ -245,6 +250,7 @@ Page hab_page
         void setup()
         {
             snd_index = 0;
+            alt_type = 999;
             audio.abort();
             hab_file_names.size = 12;
 

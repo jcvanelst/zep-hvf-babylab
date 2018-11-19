@@ -9,6 +9,11 @@ enum exp_phase {
     PHASE_POST_ATTENTION
 };
 
+// enum nalt_alt {
+//     NOT_APPLICABLE,   /// 0 ---> not applicable
+//     ALT,              /// 1 ---> alternating
+//     NALT              /// 2 ---> non-alternating
+// }
 
 /**
  * Describes the output of the phase.
@@ -23,6 +28,8 @@ record TestOutput
     int     looks;      // number of time a child looks to the stimulus.
     int     lookaways;  // number of time a child looked away.
     bool    crit_met;   // is the habituation criterion met.
+    int     alt_type;   // 0 = identical sound pairs, or not applicable (hab), 
+                        // 1 = alternating sound pairs 
 }
 
 record StimOutput
