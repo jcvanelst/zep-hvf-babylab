@@ -257,18 +257,16 @@ Page test_page
             test_file_names[0] = titem.sound1_filename;
             test_file_names[1] = titem.sound2_filename;
 
-            println (titem.sound1_filename + '\n');
-            println (titem.sound2_filename + '\n');
+            //println (titem.sound1_filename + '\n');
+            //println (titem.sound2_filename + '\n');
 
             // if the sounds are not identical, we write a 1 (alternating)
             // in all other cases, 0 (non-alternating or not applicable)
             if (test_file_names[0] == test_file_names[1]){
                 alt_type = 0;
-                println ("stimuli are identical");
             }
             if (test_file_names[0] != test_file_names[1]){
                 alt_type = 1;
-                println ("stimuli are ALTERNATING");
             }
         }
 
